@@ -961,7 +961,7 @@ class Scenario(DataHandler):
         Evaluate accuracy of phase setting and parameter estimation of all enabled phases all some past days.
 
         Args:
-            metrics (str): "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
+            metrics (str): "MAPE, "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             past_days (int or None): how many past days to use in calculation, natural integer

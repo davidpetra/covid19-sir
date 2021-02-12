@@ -35,6 +35,7 @@ class ParamTracker(Term):
         tau (int or None): tau value [min]
     """
     METRICS_DICT = {
+        "MAPE" : sklearn.metrics.mean_absolute_percentage_error,
         "MAE": sklearn.metrics.mean_absolute_error,
         "MSE": sklearn.metrics.mean_squared_error,
         "MSLE": sklearn.metrics.mean_squared_log_error,
@@ -480,7 +481,7 @@ class ParamTracker(Term):
         Evaluate accuracy of phase setting and parameter estimation of selected enabled phases.
 
         Args:
-            metrics (str): "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
+            metrics (str): "MAPE, "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             y0_dict(dict[str, float] or None): dictionary of initial values of variables
