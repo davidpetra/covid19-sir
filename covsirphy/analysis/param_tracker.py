@@ -481,7 +481,7 @@ class ParamTracker(Term):
         Evaluate accuracy of phase setting and parameter estimation of selected enabled phases.
 
         Args:
-            metrics (str): "MAPE","MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
+            metrics (str): "MAPE", "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             y0_dict(dict[str, float] or None): dictionary of initial values of variables
