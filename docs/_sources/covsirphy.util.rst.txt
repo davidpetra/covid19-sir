@@ -33,26 +33,10 @@ covsirphy.util.file module
    :undoc-members:
    :show-inheritance:
 
-covsirphy.util.map module
--------------------------
-
-.. automodule:: covsirphy.util.map
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 covsirphy.util.optimize module
 ------------------------------
 
 .. automodule:: covsirphy.util.optimize
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-covsirphy.util.plotting module
-------------------------------
-
-.. automodule:: covsirphy.util.plotting
    :members:
    :undoc-members:
    :show-inheritance:

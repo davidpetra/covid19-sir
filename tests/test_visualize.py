@@ -1,27 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from covsirphy.util.error import SubsetNotFoundError
 from pathlib import Path
 import warnings
 import matplotlib
+import pandas as pd
 import pytest
-from covsirphy import VisualizeBase, ColoredMap
-from covsirphy import UnExpectedValueError, Term
-
-
-@pytest.fixture(scope="function")
-def imgfile():
-    dirpath = Path("input")
-    dirpath.mkdir(exist_ok=True)
-    filepath = dirpath.joinpath("test.jpg")
-    yield str(filepath)
-    try:
-        filepath.unlink(missing_ok=True)
-    except TypeError:
-        # Python 3.7
-        if filepath.exists():
-            filepath.unlink()
+from covsirphy import VisualizeBase, ColoredMap, LinePlot, line_plot
+from covsirphy import BarPlot, bar_plot
+from covsirphy import Term, UnExecutedError
+from covsirphy import jpn_map
 
 
 class TestVisualizeBase(object):
@@ -47,57 +35,169 @@ class TestVisualizeBase(object):
 
 
 class TestColoredMap(object):
-    def test_error_index_name(self, imgfile, jhu_data):
-        df = jhu_data.cleaned().set_index(Term.COUNTRY)
-        with pytest.raises(UnExpectedValueError):
-            with ColoredMap(filename=imgfile) as cm:
-                cm.plot(series=df[Term.C], index_name="feeling")
+    def test_directory(self, imgfile):
+        with ColoredMap(filename=imgfile) as cm:
+            cm.directory = "input"
+            assert cm.directory == "input"
 
-    def test_not_unique(self, imgfile, jhu_data):
-        df = jhu_data.cleaned().set_index(Term.COUNTRY)
-        with pytest.raises(ValueError):
-            with ColoredMap(filename=imgfile) as cm:
-                cm.plot(series=df[Term.C], index_name=Term.COUNTRY)
-
-    def test_unset_index(self, imgfile, jhu_data):
-        # Not set country as index
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_global_country(self, imgfile, jhu_data, variable):
         df = jhu_data.cleaned()
         df = df.loc[df[Term.PROVINCE] == Term.UNKNOWN]
-        with pytest.raises(ValueError):
-            with ColoredMap(filename=imgfile) as cm:
-                cm.plot(series=df[Term.C], index_name=Term.COUNTRY)
+        df = df.groupby(Term.COUNTRY).last().reset_index()
+        df.rename(columns={variable: "Value"}, inplace=True)
+        with ColoredMap(filename=imgfile) as cm:
+            cm.plot(data=df, level=Term.COUNTRY)
+        # Not with log10 scale
+        with ColoredMap(filename=imgfile) as cm:
+            cm.plot(data=df, level=Term.COUNTRY, logscale=False)
 
-    def test_global_country(self, imgfile, jhu_data):
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_global_country_ununique(self, imgfile, jhu_data, variable):
         df = jhu_data.cleaned()
         df = df.loc[df[Term.PROVINCE] == Term.UNKNOWN]
-        df = df.groupby(Term.COUNTRY).last()
-        with ColoredMap(filename=imgfile) as cm:
-            cm.plot(series=df[Term.C], index_name=Term.COUNTRY)
-
-    def test_global_iso3(self, imgfile, jhu_data):
-        df = jhu_data._cleaned_df.copy()
-        df = df.loc[df[Term.PROVINCE] == Term.UNKNOWN]
-        df = df.groupby(Term.ISO3).last()
-        with ColoredMap(filename=imgfile) as cm:
-            cm.plot(series=df[Term.C], index_name=Term.ISO3)
+        df.rename(columns={variable: "Value"}, inplace=True)
+        with pytest.raises(ValueError):
+            with ColoredMap(filename=imgfile) as cm:
+                cm.plot(data=df, level=Term.COUNTRY)
 
     @pytest.mark.parametrize("country", ["Japan", "United States", "China"])
-    def test_in_a_country(self, imgfile, jhu_data, country):
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_in_a_country(self, imgfile, jhu_data, country, variable):
         df = jhu_data.cleaned()
         df = df.loc[df[Term.COUNTRY] == country]
         df = df.loc[df[Term.PROVINCE] != Term.UNKNOWN]
-        df = df.groupby(Term.PROVINCE).last().dropna()
+        df = df.groupby(Term.PROVINCE).last().dropna().reset_index()
+        df.rename(columns={variable: "Value"}, inplace=True)
         with ColoredMap(filename=imgfile) as cm:
-            cm.plot(series=df[Term.C], index_name=Term.PROVINCE)
+            cm.plot(data=df, level=Term.PROVINCE)
 
-    @pytest.mark.parametrize("country", ["Greece"])
-    def test_in_a_country_error(self, imgfile, jhu_data, country):
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_in_a_country_unselected_country(self, imgfile, jhu_data, variable):
+        df = jhu_data.cleaned()
+        df = df.loc[df[Term.PROVINCE] != Term.UNKNOWN]
+        df = df.groupby(Term.PROVINCE).last().dropna().reset_index()
+        df.rename(columns={variable: "Value"}, inplace=True)
+        with pytest.raises(ValueError):
+            with ColoredMap(filename=imgfile) as cm:
+                cm.plot(data=df, level=Term.PROVINCE)
+
+    @pytest.mark.parametrize("country", ["Japan"])
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_in_a_country_ununique(self, imgfile, jhu_data, country, variable):
         df = jhu_data.cleaned()
         df = df.loc[df[Term.COUNTRY] == country]
         df = df.loc[df[Term.PROVINCE] != Term.UNKNOWN]
-        # No records found at province level
-        assert df.empty
-        df = df.groupby(Term.PROVINCE).last().dropna()
-        with pytest.raises(SubsetNotFoundError):
+        df = df.dropna().reset_index()
+        df.rename(columns={variable: "Value"}, inplace=True)
+        with pytest.raises(ValueError):
             with ColoredMap(filename=imgfile) as cm:
-                cm.plot(series=df[Term.C], index_name=Term.PROVINCE)
+                cm.plot(data=df, level=Term.PROVINCE)
+
+
+class TestJapanMap(object):
+
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_japan_map_display(self, jhu_data, variable):
+        warnings.filterwarnings("ignore", category=UserWarning)
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        df = jhu_data.cleaned()
+        df = df.loc[(df[Term.COUNTRY] == "Japan") & (df[Term.PROVINCE] != "-")]
+        df = df.groupby(Term.PROVINCE).last().reset_index().dropna()
+        jpn_map(
+            prefectures=df[Term.PROVINCE], values=df[variable],
+            title="Japan: the number of {variable/lower()} cases"
+        )
+
+    @pytest.mark.parametrize("variable", ["Infected"])
+    def test_japan_map(self, jhu_data, imgfile, variable):
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        df = jhu_data.cleaned()
+        df = df.loc[(df[Term.COUNTRY] == "Japan") & (df[Term.PROVINCE] != "-")]
+        df = df.groupby(Term.PROVINCE).last().reset_index().dropna()
+        jpn_map(
+            prefectures=df[Term.PROVINCE], values=df[variable],
+            title="Japan: the number of {variable.lower()} cases",
+            filename=imgfile
+        )
+
+
+class TestLinePlot(object):
+    def test_plot(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").set_index(Term.DATE)
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df)
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df[Term.C])
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df, colormap="rainbow")
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df, color_dict={Term.C: "blue"})
+        with pytest.raises(ValueError):
+            with LinePlot(filename=imgfile) as lp:
+                lp.plot(data=df, colormap="unknown")
+
+    def test_axis(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").set_index(Term.DATE)
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df)
+            lp.x_axis(x_logscale=True)
+            lp.y_axis(y_logscale=True)
+            lp.line(v=pd.Timestamp("01Jan2021"))
+        with LinePlot(filename=imgfile) as lp:
+            lp.plot(data=df)
+            lp.y_axis(y_integer=True)
+            lp.line(h=100_000)
+
+    def test_legend(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").set_index(Term.DATE)
+        with LinePlot(filename=imgfile) as lp:
+            with pytest.raises(UnExecutedError):
+                lp.legend()
+            lp.plot(data=df)
+            lp.legend_hide()
+            lp.legend()
+
+    def test_function(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").set_index(Term.DATE)
+        line_plot(df=df, filename=imgfile, show_legend=True)
+        line_plot(df=df, filename=imgfile, show_legend=False)
+
+
+class TestBarPlot(object):
+    def test_plot(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").tail().set_index(Term.DATE)
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df[Term.C])
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df, vertical=True)
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df, vertical=False)
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df, colormap="rainbow")
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df, color_dict={Term.C: "blue"})
+        with pytest.raises(ValueError):
+            with BarPlot(filename=imgfile) as bp:
+                bp.plot(data=df, colormap="unknown")
+
+    def test_axis(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").tail().set_index(Term.DATE)
+        with BarPlot(filename=imgfile) as bp:
+            pass
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df)
+            bp.y_axis(y_integer=True)
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df)
+            bp.x_axis(xlabel=Term.DATE)
+            bp.y_axis(y_logscale=True)
+            bp.line(h=100_000)
+        with BarPlot(filename=imgfile) as bp:
+            bp.plot(data=df, vertical=True)
+            bp.line(v=100_000)
+
+    def test_function(self, jhu_data, imgfile):
+        df = jhu_data.subset(country="Japan").tail().set_index(Term.DATE)
+        bar_plot(df=df, filename=imgfile)
+        bar_plot(df=df, filename=imgfile, show_legend=False)

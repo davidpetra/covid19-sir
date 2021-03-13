@@ -18,10 +18,7 @@ reference <https://lisphilar.github.io/covid19-sir/covsirphy.html>`__ \|
 CovsirPhy is a Python library for COVID-19 (Coronavirus disease 2019)
 data analysis with phase-dependent SIR-derived ODE models. We can
 download datasets and analyse them easily. Scenario analysis with
-CovsirPhy enables us to make data-informed decisions. Please refer to
-"Method" part of `Kaggle Notebook: COVID-19 data with SIR
-model <https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model>`__
-to understand the methods.
+CovsirPhy enables us to make data-informed decisions.
 
 Functionalities
 ---------------
@@ -32,15 +29,13 @@ Functionalities
    analysis <https://lisphilar.github.io/covid19-sir/usage_phases.html>`__
 -  `Numerical simulation of ODE
    models <https://lisphilar.github.io/covid19-sir/usage_theoretical.html>`__
--  Stable: SIR, SIR-D and SIR-F model
--  Development: SIR-FV and SEWIR-F model
+-  SIR, SIR-D and SIR-F model
 -  `Phase-dependent parameter estimation of ODE
    models <https://lisphilar.github.io/covid19-sir/usage_quickest.html>`__
 -  `Scenario
    analysis <https://lisphilar.github.io/covid19-sir/usage_quick.html>`__:
    Simulate the number of cases with user-defined parameter values
--  `(In development): Find the relationship of government response and
-   parameter
+-  `Find the relationship of government response and parameter
    values <https://lisphilar.github.io/covid19-sir/usage_policy.html>`__
 
 Inspiration
@@ -55,7 +50,7 @@ Inspiration
 If you have ideas or need new functionalities, please join this project.
 Any suggestions with `Github
 Issues <https://github.com/lisphilar/covid19-sir/issues/new/choose>`__
-are always welcomed. Please read `Guideline of
+are always welcomed. Questions are also great. Please read `Guideline of
 contribution <https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html>`__
 in advance.
 
@@ -87,7 +82,8 @@ records in Japan, but we can change the country name when creating
     jhu_data = data_loader.jhu()
     population_data = data_loader.population()
     # Check records
-    snl = cs.Scenario(jhu_data, population_data, country="Japan")
+    snl = cs.Scenario(country="Japan")
+    snl.register(jhu_data, population_data)
     snl.records()
     # S-R trend analysis
     snl.trend().summary()
@@ -106,16 +102,42 @@ Further information:
 
 -  `CovsirPhy
    documentation <https://lisphilar.github.io/covid19-sir/index.html>`__
--  Example scripts in `"example" directory of this
-   repository <https://github.com/lisphilar/covid19-sir/tree/master/example>`__
 -  `Kaggle: COVID-19 data with SIR
    model <https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model>`__
+
+Release notes
+-------------
+
+Release notes are
+`here <https://github.com/lisphilar/covid19-sir/releases>`__. Titles &
+links of issues are listed with acknowledgement.
+
+We can see the release plan for the next stable version in `milestone
+page of the GitHub
+repository <https://github.com/lisphilar/covid19-sir/milestones>`__. If
+you find a highly urgent matter, please let us know via `issue
+page <https://github.com/lisphilar/covid19-sir/issues>`__.
 
 Support
 -------
 
 Please support this project as a developer (or a backer). |Become a
 backer|
+
+Developers
+----------
+
+CovsirPhy library is developed by a community of volunteers. Please see
+the full list
+`here <https://github.com/lisphilar/covid19-sir/graphs/contributors>`__.
+
+This project started in Kaggle platform. Lisphilar published `Kaggle
+Notebook: COVID-19 data with SIR
+model <https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model>`__
+on 12Feb2020 and developed it, discussing with Kaggle community. On
+07May2020, "covid19-sir" repository was created. On 10May2020,
+``covsirphy`` version 1.0.0 was published in GitHub. First release in
+PyPI (version 2.3.0) was on 28Jun2020.
 
 License: Apache License 2.0
 ---------------------------
@@ -134,19 +156,12 @@ CovsirPhy Development Team (2020), CovsirPhy, Python package for
 COVID-19 analysis with SIR-derived ODE models,
 https://github.com/lisphilar/covid19-sir
 
-If you want to use SIR-F/SIR-FV/SEWIR-F model, S-R trend analysis,
-phase-dependent approach to SIR-derived models, and other scientific
-method performed with CovsirPhy, please cite the next Kaggle notebook.
+If you want to use SIR-F model, S-R trend analysis, phase-dependent
+approach to SIR-derived models, and other scientific method performed
+with CovsirPhy, please cite the next Kaggle notebook.
 
 Lisphilar (2020), Kaggle notebook, COVID-19 data with SIR model,
 https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model
-
-Related work
-------------
-
-| Reproduction number evolution in each country:
-| Ilyass Tabiai and Houda Kaddioui (2020), GitHub pages, COVID19 R0
-  tracker, https://ilylabs.github.io/projects/COVID-trackers/
 
 .. |PyPI version| image:: https://badge.fury.io/py/covsirphy.svg
    :target: https://badge.fury.io/py/covsirphy

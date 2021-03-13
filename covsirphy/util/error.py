@@ -121,6 +121,20 @@ class UnExecutedError(AttributeError, NameError, ValueError):
         return f"Please execute {self.method_name} in advance{self.message}"
 
 
+class NotRegisteredMainError(UnExecutedError):
+    """
+    Error when main datasets were not registered.
+    """
+    pass
+
+
+class NotRegisteredExtraError(UnExecutedError):
+    """
+    Error when extra datasets were not registered.
+    """
+    pass
+
+
 class PCRIncorrectPreconditionError(KeyError):
     """
     Error when checking preconditions in the PCR data.
@@ -190,6 +204,6 @@ class UnExpectedValueError(ValueError):
         self.message = "" if message is None else f" {message}"
 
     def __str__(self):
-        s1 = f"@ {self.name} must be selected from '{self.candidates_str}',"
+        s1 = f"@{self.name} must be selected from '{self.candidates_str}',"
         s2 = f"but {self.value} was applied.{self.message}"
         return f"{s1} {s2}"

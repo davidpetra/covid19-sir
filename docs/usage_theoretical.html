@@ -44,7 +44,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Usage: policy measures" href="usage_policy.html" />
+    <link rel="next" title="covsirphy package" href="covsirphy.html" />
     <link rel="prev" title="Usage: phases" href="usage_phases.html" /> 
 </head>
 
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                2.15.0-mu
+                2.17.0-epsilon
               </div>
             
           
@@ -108,29 +108,40 @@
 <li class="toctree-l2"><a class="reference internal" href="#Create-example-dataset-with-theoretical-values">Create example dataset with theoretical values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#SIR-model">SIR model</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Non-dimensional-SIR-model">Non-dimensional SIR model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Reproduction-number">Reproduction number</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#SIR-D-model">SIR-D model</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Non-dimensional-SIR-D-model">Non-dimensional SIR-D model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Reproduction number</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#SIR-F-model">SIR-F model</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Non-dimensional-SIR-F-model">Non-dimensional SIR-F model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Reproduction number</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#SEWIR-F-model-(SIR-F-with-exposed/waiting-cases)">SEWIR-F model (SIR-F with exposed/waiting cases)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Non-dimensional-SEWIR-F-model">Non-dimensional SEWIR-F model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#SIR-FV-model-(SIR-F-model-with-vaccination)">SIR-FV model (SIR-F model with vaccination)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Scenario-analysis-with-theoretical-data">Scenario analysis with theoretical data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Compare-the-scenarios">Compare the scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#SIR-F-with-exposed/waiting-cases">SIR-F with exposed/waiting cases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Non-dimensional-SEWIR-F-model">Non-dimensional SEWIR-F model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Reproduction number</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#SIR-F-with-vaccination">SIR-F with vaccination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#SIR-F-with-re-infection">SIR-F with re-infection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Impact-of-parameter-change">Impact of parameter change</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Compare-the-scenarios">Compare the scenarios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#1.-Show-representative-values">1. Show representative values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#2.-History-of-reproduction-number">2. History of reproduction number</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#3.-Simulated-number-of-cases-of-the-specified-variable">3. Simulated number of cases of the specified variable</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#Simulation-of-each-scenario">Simulation of each scenario</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="usage_policy.html">Usage: policy measures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="covsirphy.html">covsirphy package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="markdown/TERM.html">Term definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="markdown/TERM.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CODE_OF_CONDUCT.html">Contributor Covenant Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SECURITY.html">Security policy of CovsirPhy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Guideline of contribution</a></li>
@@ -473,60 +484,35 @@ div.rendered_html tbody tr:hover {
 </style>
 <div class="section" id="Usage:-SIR-derived-models">
 <h1>Usage: SIR-derived models<a class="headerlink" href="#Usage:-SIR-derived-models" title="Permalink to this headline">¶</a></h1>
-<p>Here, we will create an example dataset with theoretical values of SIR-derived model. Then, we will perform scenario analysis with it.</p>
+<p><a class="reference external" href="https://colab.research.google.com/github/lisphilar/covid19-sir/blob/master/example/usage_theoretical.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>Here, we will create example datasets with simulated values of SIR-derived models. Then, we will perform scenario analysis with them.</p>
 <div class="section" id="Preparation">
 <h2>Preparation<a class="headerlink" href="#Preparation" title="Permalink to this headline">¶</a></h2>
-<div class="nbinput nblast docutils container">
+<p>Prepare tha packages and create a instance of <code class="docutils literal notranslate"><span class="pre">PopulationData</span></code> class to save population values.</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Standard users</span>
-<span class="c1"># !pip install covsirphy</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Developers (Note: this notebook is in example directory)</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">covsirphy</span> <span class="k">as</span> <span class="nn">cs</span>
+<span></span><span class="c1"># !pip install covsirphy --upgrade</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="kn">import</span> <span class="nn">covsirphy</span> <span class="k">as</span> <span class="nn">cs</span>
 <span class="n">cs</span><span class="o">.</span><span class="n">__version__</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&#39;2.15.0-mu&#39;
+&#39;2.17.0-epsilon&#39;
 </pre></div></div>
 </div>
+<p>Create empty instance of <code class="docutils literal notranslate"><span class="pre">PopulationData</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -537,7 +523,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -574,21 +560,30 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="Create-example-dataset-with-theoretical-values">
 <h2>Create example dataset with theoretical values<a class="headerlink" href="#Create-example-dataset-with-theoretical-values" title="Permalink to this headline">¶</a></h2>
-<p>We will use <code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class to produce theoretical values. Model descriptions (<code class="docutils literal notranslate"><span class="pre">SIR</span></code> class etc.) have preset of parameter values. Then, <span class="math notranslate nohighlight">\(\tau\)</span> (coeficient for non-dimensionalization) will be set as <span class="math notranslate nohighlight">\(1440\ \mathrm{[min]}\)</span>. The first date of records will be 01Jan2020 as an example.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<p>We will use <code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class to perform simulation with preset initial values and parameters. <span class="math notranslate nohighlight">\(\tau\)</span> (coeficient for non-dimensionalization) will be set as <span class="math notranslate nohighlight">\(1440\ \mathrm{[min]}\)</span>. The first date of records will be 01Jan2020 as an example.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Set tau value and start date of records</span>
 <span class="n">example_data</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">ExampleData</span><span class="p">(</span><span class="n">tau</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;01Jan2020&quot;</span><span class="p">)</span>
-<span class="c1"># No records has been registered</span>
+</pre></div>
+</div>
+</div>
+<p>No records were registered at this time.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Check records</span>
 <span class="n">example_data</span><span class="o">.</span><span class="n">cleaned</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -624,9 +619,9 @@ div.rendered_html tbody tr:hover {
 </table>
 </div></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class is a child class of <code class="docutils literal notranslate"><span class="pre">JHUData</span></code>. This means that we can use the example data in scenario analysis. Example codes will be shown in “Scenario analysis with theoretical data” subsection.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class is a child class of <code class="docutils literal notranslate"><span class="pre">JHUData</span></code>. i.e. We can use the example data in scenario analysis. Example codes will be shown in “Scenario analysis with theoretical data” subsection.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -635,7 +630,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -644,7 +639,7 @@ True
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -653,7 +648,7 @@ True
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -664,7 +659,7 @@ True
 </div>
 <div class="section" id="SIR-model">
 <h2>SIR model<a class="headerlink" href="#SIR-model" title="Permalink to this headline">¶</a></h2>
-<p>Let’s start with simle SIR model. Details of models are explained in <a class="reference external" href="https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model#SIR-to-SIR-F">Kaggle: COVID-19 data with SIR model</a>.</p>
+<p>Let’s start with the simlest SIR model. “Susceptible people” may meet “Infected” persons and may be confirmed as “Infected”. “Infected” patients will move to “Recovered” compertment later.</p>
 <div class="math notranslate nohighlight">
 \begin{align*}
 \mathrm{S} \overset{\beta I}{\longrightarrow} \mathrm{I} \overset{\gamma}{\longrightarrow} \mathrm{R}  \\
@@ -681,11 +676,11 @@ True
 </ul>
 <div class="line-block">
 <div class="line">Note:</div>
-<div class="line">Though R in SIR model is “Recovered and have immunity”, we defines “R as Recovered or fatal”. This is because mortality rate cannot be ignored in the real COVID-19 data.</div>
+<div class="line">Though <span class="math notranslate nohighlight">\(R\)</span> in SIR model is “Recovered and have immunity”, we defines <span class="math notranslate nohighlight">\(R\)</span> as “Recovered or fatal”. This is because mortality rate cannot be ignored in our COVID-19 outbreak.</div>
 </div>
 <div class="section" id="Non-dimensional-SIR-model">
 <h3>Non-dimensional SIR model<a class="headerlink" href="#Non-dimensional-SIR-model" title="Permalink to this headline">¶</a></h3>
-<p>To simplify the model, we will remove the units of the variables from ODE.</p>
+<p>To simplify the model, we will remove the units of the variables from the ODE model.</p>
 <p>Set <span class="math notranslate nohighlight">\((S, I, R) = N \times (x, y, z)\)</span> and <span class="math notranslate nohighlight">\((T, \beta, \gamma) = (\tau t, \tau^{-1} \rho, \tau^{-1} \sigma)\)</span>.</p>
 <p>This results in the ODE</p>
 <div class="math notranslate nohighlight">
@@ -694,8 +689,9 @@ True
 &amp; \frac{\mathrm{d}y}{\mathrm{d}t}= \rho x y - \sigma y  \\
 &amp; \frac{\mathrm{d}z}{\mathrm{d}t}= \sigma y  \\
 \end{align*}</div><p>Where <span class="math notranslate nohighlight">\(N\)</span> is the total population and <span class="math notranslate nohighlight">\(\tau\)</span> is a coefficient ([min], is an integer to simplify).</p>
+<p>The model name and preset of parameter and initial values are registed as class variables of <code class="docutils literal notranslate"><span class="pre">SIR</span></code> class.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -718,8 +714,9 @@ SIR
  &#39;y0_dict&#39;: {&#39;Fatal or Recovered&#39;: 0, &#39;Infected&#39;: 1000, &#39;Susceptible&#39;: 999000}}
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<p>With the preset values, <code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> instance will produce a example data.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -727,8 +724,109 @@ SIR
 <span class="n">area</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;Full&quot;</span><span class="p">,</span> <span class="s2">&quot;province&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">NAME</span><span class="p">}</span>
 <span class="c1"># Add records with SIR model</span>
 <span class="n">example_data</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
-<span class="c1"># Records with model variables</span>
+</pre></div>
+</div>
+</div>
+<p>We can get example records with <code class="docutils literal notranslate"><span class="pre">ExampleData.specialized()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Records with model variables</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">example_data</span><span class="o">.</span><span class="n">specialized</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Date</th>
+      <th>Country</th>
+      <th>Province</th>
+      <th>Susceptible</th>
+      <th>Infected</th>
+      <th>Fatal or Recovered</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2020-01-01</td>
+      <td>Full</td>
+      <td>SIR</td>
+      <td>999000</td>
+      <td>1000</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2020-01-02</td>
+      <td>Full</td>
+      <td>SIR</td>
+      <td>998787</td>
+      <td>1133</td>
+      <td>80</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2020-01-03</td>
+      <td>Full</td>
+      <td>SIR</td>
+      <td>998546</td>
+      <td>1283</td>
+      <td>170</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2020-01-04</td>
+      <td>Full</td>
+      <td>SIR</td>
+      <td>998273</td>
+      <td>1454</td>
+      <td>273</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2020-01-05</td>
+      <td>Full</td>
+      <td>SIR</td>
+      <td>997964</td>
+      <td>1647</td>
+      <td>389</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">covsirphy.line_plot()</span></code> function, figures will be shown (or saved when <code class="docutils literal notranslate"><span class="pre">filename</span></code> argument was applied).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Line plot with the example data</span>
 <span class="n">cs</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Example data of </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model&quot;</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -737,14 +835,45 @@ SIR
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_15_0.png" src="_images/usage_theoretical_15_0.png" />
+<img alt="_images/usage_theoretical_21_0.png" src="_images/usage_theoretical_21_0.png" />
 </div>
+</div>
+</div>
+<div class="section" id="Reproduction-number">
+<h3>Reproduction number<a class="headerlink" href="#Reproduction-number" title="Permalink to this headline">¶</a></h3>
+<p>Reproduction number of SIR model is defined as follows.</p>
+<div class="math notranslate nohighlight">
+\begin{align*}
+R_0 = \rho \sigma^{-1} = \beta \gamma^{-1}
+\end{align*}</div><p><span class="math notranslate nohighlight">\(R_0\)</span> (“R naught”) means “the average number of secondary infections caused by an infected host” (<a class="reference external" href="https://towardsdatascience.com/infection-modeling-part-1-87e74645568a">external link: Infection Modeling — Part 1</a>). When <span class="math notranslate nohighlight">\(x=\frac{1}{R_0}\)</span>, <span class="math notranslate nohighlight">\(\frac{\mathrm{d}y}{\mathrm{d}t}=0\)</span> (the number of infected cases does not change).</p>
+<p>We can calculate reproduction number using <code class="docutils literal notranslate"><span class="pre">.calc_r0()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Calculate reproduction number</span>
+<span class="c1"># Note: population value will be applied, but not used in calculation</span>
+<span class="n">param_dict</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIR</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">[</span><span class="s2">&quot;param_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">model_instance</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIR</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>
+<span class="n">r0</span> <span class="o">=</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">calc_r0</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reproduction number of </span><span class="si">{</span><span class="n">model_instance</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model: </span><span class="si">{</span><span class="n">r0</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Reproduction number of SIR model: 2.67
+</pre></div></div>
 </div>
 </div>
 </div>
 <div class="section" id="SIR-D-model">
 <h2>SIR-D model<a class="headerlink" href="#SIR-D-model" title="Permalink to this headline">¶</a></h2>
-<p>Because we are measuring the number of fatal cases and recovered cases separately, we can use two variables (“Recovered” and “Deaths”) instead of “Recovered + Deaths” in the mathematical model.</p>
+<p>Because we are measuring the number of fatal cases and recovered cases separately, we can use two variables (“Recovered” and “Deaths”) instead of “Recovered + Deaths” in the mathematical model. We call this model as SIR-D model.</p>
 <div class="math notranslate nohighlight">
 \begin{align*}
 \mathrm{S} \overset{\beta  I}{\longrightarrow}\ &amp; \mathrm{I} \overset{\gamma}{\longrightarrow} \mathrm{R}  \\
@@ -772,8 +901,9 @@ This results in the ODE</p>
 &amp; \frac{\mathrm{d}y}{\mathrm{d}t}= \rho x y - (\sigma + \kappa) y  \\
 &amp; \frac{\mathrm{d}z}{\mathrm{d}t}= \sigma y  \\
 &amp; \frac{\mathrm{d}w}{\mathrm{d}t}= \kappa y  \\
-\end{align*}</div><div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+\end{align*}</div><p>The model name and preset values are registered in <code class="docutils literal notranslate"><span class="pre">SIRD</span></code> class.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -799,8 +929,9 @@ SIR-D
              &#39;Susceptible&#39;: 999000}}
 </pre></div></div>
 </div>
+<p>Example data is here.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -818,14 +949,44 @@ SIR-D
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_18_0.png" src="_images/usage_theoretical_18_0.png" />
+<img alt="_images/usage_theoretical_28_0.png" src="_images/usage_theoretical_28_0.png" />
 </div>
+</div>
+</div>
+<div class="section" id="id1">
+<h3>Reproduction number<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Reproduction number of SIR-D model is defined as follows.</p>
+<div class="math notranslate nohighlight">
+\begin{align*}
+R_0 = \rho (\sigma + \kappa)^{-1} = \beta (\gamma + \alpha)^{-1}
+\end{align*}</div><p>We can calculate reproduction number using <code class="docutils literal notranslate"><span class="pre">.calc_r0()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Calculate reproduction number</span>
+<span class="c1"># Note: population value will be applied, but not used in calculation</span>
+<span class="n">param_dict</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRD</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">[</span><span class="s2">&quot;param_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">model_instance</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRD</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>
+<span class="n">r0</span> <span class="o">=</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">calc_r0</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reproduction number of </span><span class="si">{</span><span class="n">model_instance</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model: </span><span class="si">{</span><span class="n">r0</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Reproduction number of SIR-D model: 2.5
+</pre></div></div>
 </div>
 </div>
 </div>
 <div class="section" id="SIR-F-model">
 <h2>SIR-F model<a class="headerlink" href="#SIR-F-model" title="Permalink to this headline">¶</a></h2>
-<p>In the initial phase of COVID-19 outbreak, many cases were confirmed after they died. To consider this issue, “S + I <span class="math notranslate nohighlight">\(\to\)</span> Fatal + I” will be added to the model. When <span class="math notranslate nohighlight">\(\alpha_{1}=0\)</span>, SIR-F model will be the same as SIR-D model.</p>
+<p>In the initial phase of COVID-19 outbreak, many cases were confirmed after they died. To consider this issue, “S + I <span class="math notranslate nohighlight">\(\to\)</span> Fatal + I” should be added. We call the next model as SIR-F model. When <span class="math notranslate nohighlight">\(\alpha_{1}=0\)</span>, no difference with the SIR-D model.</p>
 <div class="math notranslate nohighlight">
 \begin{align*}
 \mathrm{S} \overset{\beta I}{\longrightarrow} \mathrm{S}^\ast \overset{\alpha_1}{\longrightarrow}\ &amp; \mathrm{F}    \\
@@ -855,6 +1016,7 @@ SIR-D
 <div class="line">Notes on the difference of SIR-D and SIR-F model:</div>
 <div class="line"><span class="math notranslate nohighlight">\(\alpha_1\)</span> is small at this time because performance of PCR tests was improved, but we can use SIR-F model rather than SIR-D model as an enhanced model even now becase <span class="math notranslate nohighlight">\(\alpha_1\)</span> can be 0 in the ODE model.</div>
 </div>
+<p>SIR-F model was developed with <a class="reference external" href="https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model#SIR-to-SIR-F">Kaggle: COVID-19 data with SIR model</a>.</p>
 <div class="section" id="Non-dimensional-SIR-F-model">
 <h3>Non-dimensional SIR-F model<a class="headerlink" href="#Non-dimensional-SIR-F-model" title="Permalink to this headline">¶</a></h3>
 <p>Set <span class="math notranslate nohighlight">\((S, I, R, F) = N \times (x, y, z, w)\)</span> and <span class="math notranslate nohighlight">\((T, \alpha_1, \alpha_2, \beta, \gamma) = (\tau t, \theta, \tau^{-1} \kappa, \tau^{-1} \rho, \tau^{-1} \sigma)\)</span>.
@@ -865,8 +1027,9 @@ This results in the ODE</p>
 &amp; \frac{\mathrm{d}y}{\mathrm{d}t}= \rho (1-\theta) x y - (\sigma + \kappa) y  \\
 &amp; \frac{\mathrm{d}z}{\mathrm{d}t}= \sigma y  \\
 &amp; \frac{\mathrm{d}w}{\mathrm{d}t}= \rho \theta x y + \kappa y  \\
-\end{align*}</div><div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+\end{align*}</div><p>We use <code class="docutils literal notranslate"><span class="pre">SIRF</span></code> class.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -892,8 +1055,9 @@ SIR-F
              &#39;Susceptible&#39;: 999000}}
 </pre></div></div>
 </div>
+<p>Example data is here.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -911,14 +1075,45 @@ SIR-F
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_24_0.png" src="_images/usage_theoretical_24_0.png" />
+<img alt="_images/usage_theoretical_38_0.png" src="_images/usage_theoretical_38_0.png" />
 </div>
 </div>
 </div>
+<div class="section" id="id2">
+<h3>Reproduction number<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>Reproduction number of SIR-F model is defined as follows.</p>
+<div class="math notranslate nohighlight">
+\begin{align*}
+R_0 = \rho (1 - \theta) (\sigma + \kappa)^{-1} = \beta (1 - \alpha_1) (\gamma + \alpha_2)^{-1}
+\end{align*}</div><p>We can calculate reproduction number using <code class="docutils literal notranslate"><span class="pre">.calc_r0()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
 </div>
-<div class="section" id="SEWIR-F-model-(SIR-F-with-exposed/waiting-cases)">
-<h2>SEWIR-F model (SIR-F with exposed/waiting cases)<a class="headerlink" href="#SEWIR-F-model-(SIR-F-with-exposed/waiting-cases)" title="Permalink to this headline">¶</a></h2>
-<p>The number of exposed cases in latent period (E) and wating cases for confirmation (W) are un-measurable variables, but key variables as well as S, I, R, F. If E and W are large, outbreak will occur in the near future. Let’s replace S<span class="math notranslate nohighlight">\(\overset{\beta I}{\longrightarrow}\)</span>S<span class="math notranslate nohighlight">\(^\ast\)</span> as follows because W also has infectivity.</p>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Calculate reproduction number</span>
+<span class="c1"># Note: population value will be applied, but not used in calculation</span>
+<span class="n">param_dict</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRF</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">[</span><span class="s2">&quot;param_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">model_instance</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRF</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>
+<span class="n">r0</span> <span class="o">=</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">calc_r0</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reproduction number of </span><span class="si">{</span><span class="n">model_instance</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model: </span><span class="si">{</span><span class="n">r0</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Reproduction number of SIR-F model: 2.5
+</pre></div></div>
+</div>
+</div>
+</div>
+<div class="section" id="SIR-F-with-exposed/waiting-cases">
+<h2>SIR-F with exposed/waiting cases<a class="headerlink" href="#SIR-F-with-exposed/waiting-cases" title="Permalink to this headline">¶</a></h2>
+<p>The next model is SEWIR-F model.
+The number of exposed cases in latent period (E) and wating cases for confirmation (W) are un-measurable variables, but key variables as well as S, I, R, F. If E and W are large, outbreak will occur in the near future. Let’s replace S<span class="math notranslate nohighlight">\(\overset{\beta I}{\longrightarrow}\)</span>S<span class="math notranslate nohighlight">\(^\ast\)</span> as follows because W also has infectivity.</p>
 <div class="math notranslate nohighlight">
 \begin{align*}
 \mathrm{S} \overset{\beta_1 (W+I)}{\longrightarrow} \mathrm{E} \overset{\beta_2}{\longrightarrow} \mathrm{W} \overset{\beta_3}{\longrightarrow} \mathrm{S}^\ast \overset{\alpha_1}{\longrightarrow}\ &amp; \mathrm{F}    \\
@@ -943,9 +1138,8 @@ SIR-F
 <li><p><span class="math notranslate nohighlight">\(\beta_3\)</span>: Inverse of waiting time for confirmation <span class="math notranslate nohighlight">\(\mathrm{[1/min]}\)</span></p></li>
 <li><p><span class="math notranslate nohighlight">\(\gamma\)</span>: Recovery rate <span class="math notranslate nohighlight">\(\mathrm{[1/min]}\)</span></p></li>
 </ul>
-</div>
 <div class="section" id="Non-dimensional-SEWIR-F-model">
-<h2>Non-dimensional SEWIR-F model<a class="headerlink" href="#Non-dimensional-SEWIR-F-model" title="Permalink to this headline">¶</a></h2>
+<h3>Non-dimensional SEWIR-F model<a class="headerlink" href="#Non-dimensional-SEWIR-F-model" title="Permalink to this headline">¶</a></h3>
 <p>Set <span class="math notranslate nohighlight">\((S, E, W, I, R, F) = N \times (x_1, x_2, x_3, y, z, w)\)</span>, <span class="math notranslate nohighlight">\((T, \alpha_1) = (\tau t, \theta)\)</span> and <span class="math notranslate nohighlight">\((\alpha_2, \beta_i, \gamma) = \tau^{-1} \times (\kappa, \rho_i, \sigma)\)</span>.
 This results in the ODE</p>
 <div class="math notranslate nohighlight">
@@ -956,8 +1150,13 @@ This results in the ODE</p>
 &amp; \frac{\mathrm{d}y}{\mathrm{d}t}= (1-\theta) \rho_3 x_3 - (\sigma + \kappa) y  \\
 &amp; \frac{\mathrm{d}z}{\mathrm{d}t}= \sigma y  \\
 &amp; \frac{\mathrm{d}w}{\mathrm{d}t}= \theta \rho_3 x_3 + \kappa y  \\
-\end{align*}</div><div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+\end{align*}</div><div class="line-block">
+<div class="line">Note:</div>
+<div class="line"><strong>We cannot use SEWIR-F model for parameter estimation because we do not have records of Exposed and Waiting. Please use SIR-F model with covsirphy.SIRF class.</strong></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">SEWIRF</span></code> class is for the SEWIR-F model.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -990,8 +1189,9 @@ SEWIR-F
              &#39;Waiting&#39;: 0.002}}
 </pre></div></div>
 </div>
+<p>Example records are here.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1009,30 +1209,28 @@ SEWIR-F
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_28_0.png" src="_images/usage_theoretical_28_0.png" />
+<img alt="_images/usage_theoretical_47_0.png" src="_images/usage_theoretical_47_0.png" />
 </div>
 </div>
 </div>
-<div class="section" id="SIR-FV-model-(SIR-F-model-with-vaccination)">
-<h2>SIR-FV model (SIR-F model with vaccination)<a class="headerlink" href="#SIR-FV-model-(SIR-F-model-with-vaccination)" title="Permalink to this headline">¶</a></h2>
-<p>This model considers vacctnation of sussceptible people as follows. <span class="math notranslate nohighlight">\(\omega \times N\)</span> persons will be vaccinated in a day. <span class="math notranslate nohighlight">\(N\)</span> is the total population.</p>
+<div class="section" id="id3">
+<h3>Reproduction number<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>Reproduction number of SEWIR-F model is defined as follows.</p>
 <div class="math notranslate nohighlight">
 \begin{align*}
-\mathrm{S} \overset{\beta I}{\longrightarrow} \mathrm{S}^\ast \overset{\alpha_1}{\longrightarrow}\ &amp; \mathrm{F}    \\
-\mathrm{S}^\ast \overset{1 - \alpha_1}{\longrightarrow}\ &amp; \mathrm{I} \overset{\gamma}{\longrightarrow} \mathrm{R}    \\
-&amp; \mathrm{I} \overset{\alpha_2}{\longrightarrow} \mathrm{F}    \\
-\end{align*}</div><p>With</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\frac{\mathrm{d}S}{\mathrm{d}T}= - \beta S I - \omega N  \\\end{split}\]</div>
+R_0 = \rho_1 /\rho_2 * \rho_3 (1-\theta) (\sigma + \kappa)^{-1}
+\end{align*}</div><p>We can calculate reproduction number using <code class="docutils literal notranslate"><span class="pre">.calc_r0()</span></code> method.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Model name</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">SIRFV</span><span class="o">.</span><span class="n">NAME</span><span class="p">)</span>
-<span class="c1"># Example parameter values</span>
-<span class="n">pprint</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">SIRFV</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="n">compact</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span></span><span class="c1"># Calculate reproduction number</span>
+<span class="c1"># Note: population value will be applied, but not used in calculation</span>
+<span class="n">param_dict</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SEWIRF</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">[</span><span class="s2">&quot;param_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">model_instance</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SEWIRF</span><span class="p">(</span><span class="n">population</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>
+<span class="n">r0</span> <span class="o">=</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">calc_r0</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reproduction number of </span><span class="si">{</span><span class="n">model_instance</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model: </span><span class="si">{</span><span class="n">r0</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1041,52 +1239,37 @@ SEWIR-F
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-SIR-FV
-{&#39;param_dict&#39;: {&#39;kappa&#39;: 0.005,
-                &#39;omega&#39;: 0.001,
-                &#39;rho&#39;: 0.2,
-                &#39;sigma&#39;: 0.075,
-                &#39;theta&#39;: 0.002},
- &#39;population&#39;: 1000000,
- &#39;step_n&#39;: 180,
- &#39;y0_dict&#39;: {&#39;Fatal&#39;: 0,
-             &#39;Infected&#39;: 1000,
-             &#39;Recovered&#39;: 0,
-             &#39;Susceptible&#39;: 999000,
-             &#39;Vaccinated&#39;: 0}}
+Reproduction number of SEWIR-F model: 2.49
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">model</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRFV</span>
-<span class="n">area</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;Full&quot;</span><span class="p">,</span> <span class="s2">&quot;province&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">NAME</span><span class="p">}</span>
-<span class="c1"># Add records with SIR model</span>
-<span class="n">example_data</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
-<span class="c1"># Records with model variables</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">example_data</span><span class="o">.</span><span class="n">specialized</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
-<span class="n">cs</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Example data of </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">NAME</span><span class="si">}</span><span class="s2"> model&quot;</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="section" id="SIR-F-with-vaccination">
+<h2>SIR-F with vaccination<a class="headerlink" href="#SIR-F-with-vaccination" title="Permalink to this headline">¶</a></h2>
+<p>Vaccination is a key factor to prevent outbreak as you know.</p>
+<p>In the previous version, we defined SIR-FV model with <span class="math notranslate nohighlight">\(\omega\)</span> (vaccination rate) and</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\mathrm{d}S}{\mathrm{d}T}= - \beta S I - \omega N  \\\end{split}\]</div>
+<p>However, <strong>SIR-FV model was removed because vaccinated persons may move to the other compartments, including “Susceprtible”. Please use SIR-F model for simulation and parameter estimation with adjusted parameter values, considering the impact of vaccinations on infectivity, its effectivity and safety.</strong></p>
 </div>
-<div class="output_area docutils container">
-<img alt="_images/usage_theoretical_31_0.png" src="_images/usage_theoretical_31_0.png" />
+<div class="section" id="SIR-F-with-re-infection">
+<h2>SIR-F with re-infection<a class="headerlink" href="#SIR-F-with-re-infection" title="Permalink to this headline">¶</a></h2>
+<p>Re-infection (Recovered -&gt; Susceptble) is sometimes reported and we can consider SIR-S (SIR-FS) model. However, this is not impremented at this time because we do not have data regarding re-infection. SIR-F model could be the final model in our data-driven approach at this time.</p>
+<p>Re-infection changes the parameter values of SIR-F model. There are two patterns.</p>
+<ol class="arabic simple">
+<li><p>If re-infected case are counted as new confirmed cases and removed from “Recovered” compartment, <span class="math notranslate nohighlight">\(\sigma\)</span> will be decreased.</p></li>
+<li><p>If re-infected cases are counted as new confirmed cases and <strong>NOT</strong> removed from “Recovered” compartment, <span class="math notranslate nohighlight">\(\rho\)</span> will be increased because “Susceptible” will be decreased.</p></li>
+</ol>
 </div>
-</div>
-</div>
-<div class="section" id="Scenario-analysis-with-theoretical-data">
-<h2>Scenario analysis with theoretical data<a class="headerlink" href="#Scenario-analysis-with-theoretical-data" title="Permalink to this headline">¶</a></h2>
-<p>Because <code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class is a subclass of <code class="docutils literal notranslate"><span class="pre">JHUData</span></code>, we can perform scenario analysis with example datasets easily. Here, we will use the following scenarios. For explanation, <span class="math notranslate nohighlight">\(\tau=1440\)</span>, the start date is 01Jan2020, population is 1,000,000 and country name is “Theoretical”. This is not based on actual data.</p>
+<div class="section" id="Impact-of-parameter-change">
+<h2>Impact of parameter change<a class="headerlink" href="#Impact-of-parameter-change" title="Permalink to this headline">¶</a></h2>
+<p>Because <code class="docutils literal notranslate"><span class="pre">ExampleData</span></code> class is a subclass of <code class="docutils literal notranslate"><span class="pre">JHUData</span></code>, we can perform scenario analysis with example datasets easily. We evaluate the impact of parameter changes.</p>
+<p>Here, we will use the following scenarios. For explanation, <span class="math notranslate nohighlight">\(\tau=1440\)</span>, the start date is 01Jan2020, population is 1,000,000 and country name is “Theoretical”. <strong>Their scenarios are not based on actual data.</strong></p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 10%" />
-<col style="width: 22%" />
-<col style="width: 68%" />
+<col style="width: 21%" />
+<col style="width: 69%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>name</p></th>
@@ -1101,31 +1284,32 @@ SIR-FV
 </tr>
 <tr class="row-odd"><td><p>Lockdown</p></td>
 <td><p>SIR-F</p></td>
-<td><p>SIR-F with half value of <span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td><p>SIR-F with 50% of <span class="math notranslate nohighlight">\(\rho\)</span></p></td>
 </tr>
 <tr class="row-even"><td><p>Medicine</p></td>
 <td><p>SIR-F</p></td>
-<td><p>SIR-F with half value of <span class="math notranslate nohighlight">\(\kappa\)</span> and double value of <span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
+<td><p>SIR-F with 50% of <span class="math notranslate nohighlight">\(\kappa\)</span> and 200% of <span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>Vaccine</p></td>
 <td><p>SIR-F</p></td>
-<td><p>SIR-FV with <span class="math notranslate nohighlight">\(\omega=0.01\)</span></p></td>
+<td><p>SIR-F with 80% of <span class="math notranslate nohighlight">\(\rho\)</span>, 60% of <span class="math notranslate nohighlight">\(\kappa\)</span> and 120% of <span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
 </tr>
 </tbody>
 </table>
+<p>As baseline (main scenario), we use preset values of the SIR-F model.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Preset of SIR-F parameters</span>
+<span></span><span class="c1"># Preset of SIR-F parameters and initial values</span>
 <span class="n">preset_dict</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">SIRF</span><span class="o">.</span><span class="n">EXAMPLE</span><span class="p">[</span><span class="s2">&quot;param_dict&quot;</span><span class="p">]</span>
 <span class="n">preset_dict</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1133,8 +1317,9 @@ SIR-FV
 {&#39;theta&#39;: 0.002, &#39;kappa&#39;: 0.005, &#39;rho&#39;: 0.2, &#39;sigma&#39;: 0.075}
 </pre></div></div>
 </div>
+<p>Create records from 01Jan2020 to 31Jan2020. These records will be used commonly in the scenarios.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1148,7 +1333,7 @@ SIR-FV
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1156,13 +1341,25 @@ SIR-FV
 1000000
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<p>Create <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> instance for scenario analysis.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Show records with Scenario class</span>
-<span class="n">snl</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Scenario</span><span class="p">(</span><span class="n">example_data</span><span class="p">,</span> <span class="n">population_data</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
+<span></span><span class="c1"># Create Scenario instance</span>
+<span class="n">snl</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Scenario</span><span class="p">(</span><span class="n">tau</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="o">**</span><span class="n">area</span><span class="p">)</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">example_data</span><span class="p">,</span> <span class="n">population_data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Then, confirm the records with <code class="docutils literal notranslate"><span class="pre">Scenario.records()</span></code> instance.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Show records with Scenario instance</span>
 <span class="n">record_df</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">records</span><span class="p">()</span>
 <span class="n">display</span><span class="p">(</span><span class="n">record_df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 <span class="n">display</span><span class="p">(</span><span class="n">record_df</span><span class="o">.</span><span class="n">tail</span><span class="p">())</span>
@@ -1173,7 +1370,7 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_35_0.png" src="_images/usage_theoretical_35_0.png" />
+<img alt="_images/usage_theoretical_60_0.png" src="_images/usage_theoretical_60_0.png" />
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1316,20 +1513,22 @@ SIR-FV
 <div class="line">Note:</div>
 <div class="line">Record on 01Jan2020 was removed because the number of recovered cases is 0 and this sometimes causes error in estimation.</div>
 </div>
+<p>Then, set the records from 02Jan2020 to 31Jan2020 as the 0th phase. The 0th phase is commonly used in the all scenarios.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Set 0th phase from 02Jan2020 to 31Jan2020 with preset parameter values</span>
 <span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">include_past</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Jan2020&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">SIRF</span><span class="p">,</span> <span class="o">**</span><span class="n">preset_dict</span><span class="p">)</span>
+<span class="c1"># Show summary</span>
 <span class="n">snl</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1391,32 +1590,183 @@ SIR-FV
 </table>
 </div></div>
 </div>
+<p>Set the 1st phase with the same parameter values.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Add main scenario</span>
 <span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">)</span>
-<span class="c1"># Add lockdown scenario</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">)</span>
-<span class="n">rho_lock</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rho&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho_lock</span><span class="p">)</span>
-<span class="c1"># Add medicine scenario</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">)</span>
-<span class="n">kappa_med</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kappa&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-<span class="n">sigma_med</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="n">kappa_med</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma_med</span><span class="p">)</span>
-<span class="c1"># Add vaccine scenario</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">)</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">SIRFV</span><span class="p">,</span> <span class="n">omega</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
-<span class="c1"># Summarize</span>
 <span class="n">snl</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Type</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Population</th>
+      <th>ODE</th>
+      <th>Rt</th>
+      <th>theta</th>
+      <th>kappa</th>
+      <th>rho</th>
+      <th>sigma</th>
+      <th>tau</th>
+      <th>alpha1 [-]</th>
+      <th>1/alpha2 [day]</th>
+      <th>1/beta [day]</th>
+      <th>1/gamma [day]</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0th</th>
+      <td>Past</td>
+      <td>02Jan2020</td>
+      <td>31Jan2020</td>
+      <td>1000000</td>
+      <td>SIR-F</td>
+      <td>2.5</td>
+      <td>0.002</td>
+      <td>0.005</td>
+      <td>0.2</td>
+      <td>0.075</td>
+      <td>1440</td>
+      <td>0.002</td>
+      <td>200</td>
+      <td>5</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>1st</th>
+      <td>Future</td>
+      <td>01Feb2020</td>
+      <td>31Dec2020</td>
+      <td>1000000</td>
+      <td>SIR-F</td>
+      <td>2.5</td>
+      <td>0.002</td>
+      <td>0.005</td>
+      <td>0.2</td>
+      <td>0.075</td>
+      <td>1440</td>
+      <td>0.002</td>
+      <td>200</td>
+      <td>5</td>
+      <td>13</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Copy the main scenario and name it as Lockdown scenario. <code class="docutils literal notranslate"><span class="pre">Scenario.clear()</span></code> removes the future phase (th 1st phase here) and we will register th 1st phase with halved <span class="math notranslate nohighlight">\(\rho\)</span> value. Lockdown is supposed to reduce effective contact rate.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Add lockdown scenario</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">)</span>
+<span class="c1"># Get rho value of the 0th phase and halve it</span>
+<span class="n">rho_lock</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rho&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span>
+<span class="c1"># Add th 1st phase with the calculated rho value</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho_lock</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;covsirphy.analysis.scenario.Scenario at 0x7f2133638400&gt;
+</pre></div></div>
+</div>
+<p>Next, we define medicine scenario. <span class="math notranslate nohighlight">\(\kappa\)</span> will be halved and <span class="math notranslate nohighlight">\(\sigma\)</span> will be doubled. New medicines may reduce the severity rate and enhance recovery.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Add medicine scenario</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">)</span>
+<span class="n">kappa_med</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kappa&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span>
+<span class="n">sigma_med</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="n">kappa_med</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma_med</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;covsirphy.analysis.scenario.Scenario at 0x7f2133638400&gt;
+</pre></div></div>
+</div>
+<p>We define vaccine scenario. As noted in “SIR-F model with vaccination” section, vaccination impacts on <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\kappa\)</span> with depending on its effectivity and safety. If vaccinations impact on infectivity, <span class="math notranslate nohighlight">\(\rho\)</span> value will be also changed.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Add vaccine scenario</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">)</span>
+<span class="n">rho_vac</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rho&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.8</span>
+<span class="n">kappa_vac</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kappa&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.6</span>
+<span class="n">sigma_vac</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0th&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.2</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;31Dec2020&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">,</span>  <span class="n">rho</span><span class="o">=</span><span class="n">rho_vac</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="n">kappa_vac</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma_vac</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;covsirphy.analysis.scenario.Scenario at 0x7f2133638400&gt;
+</pre></div></div>
+</div>
+<p>See the phase settings with <code class="docutils literal notranslate"><span class="pre">Scenario.summary()</span></code> as always.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Show summary</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1454,14 +1804,10 @@ SIR-FV
       <th>1/alpha2 [day]</th>
       <th>1/beta [day]</th>
       <th>1/gamma [day]</th>
-      <th>omega</th>
-      <th>Vaccinated [persons/day]</th>
     </tr>
     <tr>
       <th>Scenario</th>
       <th>Phase</th>
-      <th></th>
-      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -1491,15 +1837,13 @@ SIR-FV
       <td>2.50</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>5</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th>1st</th>
@@ -1511,15 +1855,13 @@ SIR-FV
       <td>2.50</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>5</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th rowspan="2" valign="top">Lockdown</th>
@@ -1532,15 +1874,13 @@ SIR-FV
       <td>2.50</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>5</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th>1st</th>
@@ -1552,15 +1892,13 @@ SIR-FV
       <td>1.25</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.1</td>
+      <td>0.10</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>10</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th rowspan="2" valign="top">Medicine</th>
@@ -1573,15 +1911,13 @@ SIR-FV
       <td>2.50</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>5</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th>1st</th>
@@ -1593,15 +1929,13 @@ SIR-FV
       <td>1.31</td>
       <td>0.002</td>
       <td>0.0025</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.150</td>
       <td>1440</td>
       <td>0.002</td>
       <td>400</td>
       <td>5</td>
       <td>6</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th rowspan="2" valign="top">Vaccine</th>
@@ -1614,15 +1948,13 @@ SIR-FV
       <td>2.50</td>
       <td>0.002</td>
       <td>0.0050</td>
-      <td>0.2</td>
+      <td>0.20</td>
       <td>0.075</td>
       <td>1440</td>
       <td>0.002</td>
       <td>200</td>
       <td>5</td>
       <td>13</td>
-      <td>-</td>
-      <td>-</td>
     </tr>
     <tr>
       <th>1st</th>
@@ -1630,19 +1962,112 @@ SIR-FV
       <td>01Feb2020</td>
       <td>31Dec2020</td>
       <td>1000000</td>
-      <td>SIR-FV</td>
-      <td>2.50</td>
+      <td>SIR-F</td>
+      <td>1.72</td>
       <td>0.002</td>
-      <td>0.0050</td>
-      <td>0.2</td>
-      <td>0.075</td>
+      <td>0.0030</td>
+      <td>0.16</td>
+      <td>0.090</td>
       <td>1440</td>
       <td>0.002</td>
-      <td>200</td>
-      <td>5</td>
-      <td>13</td>
-      <td>0.01</td>
-      <td>10000</td>
+      <td>333</td>
+      <td>6</td>
+      <td>11</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Show the parameter setting with <code class="docutils literal notranslate"><span class="pre">Scenario.history()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Show the history of rho as a dataframe and a figure</span>
+<span class="c1"># we can set theta/kappa/rho/sigma for SIR-F model</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;rho&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/usage_theoretical_75_0.png" src="_images/usage_theoretical_75_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Scenario</th>
+      <th>Lockdown</th>
+      <th>Main</th>
+      <th>Medicine</th>
+      <th>Vaccine</th>
+    </tr>
+    <tr>
+      <th>Date</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2020-01-02</th>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>2020-01-03</th>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>2020-01-04</th>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>2020-01-05</th>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <th>2020-01-06</th>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
+      <td>0.2</td>
     </tr>
   </tbody>
 </table>
@@ -1650,18 +2075,33 @@ SIR-FV
 </div>
 <div class="section" id="Compare-the-scenarios">
 <h3>Compare the scenarios<a class="headerlink" href="#Compare-the-scenarios" title="Permalink to this headline">¶</a></h3>
+<p>We will compare the scenarios to discuss the impact of changing parameters. We have some methods for that.</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Scenario.describe()</span></code> shows representative values as a dataframe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Scenario.history(target=&quot;Rt&quot;)</span></code> shows the history of automatically calculated reproduction number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Scenario.history(target=&quot;variable</span> <span class="pre">name&quot;)</span></code> shows simulated number of cases for the specified variable.</p></li>
+<li><p>If you have any ideas, please create <a class="reference external" href="https://github.com/lisphilar/covid19-sir/issues">issues</a>! :)</p></li>
+</ol>
+<div class="section" id="1.-Show-representative-values">
+<h4>1. Show representative values<a class="headerlink" href="#1.-Show-representative-values" title="Permalink to this headline">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">Scenario.describe()</span></code> compares</p>
+<ul class="simple">
+<li><p>max number of infected cases and the date with the max value,</p></li>
+<li><p>the number of confirmed/infected/fatal cases on the next date of the last phase, and</p></li>
+<li><p>reproduction numbers for the phases with different numbers.</p></li>
+</ul>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Apply initial value of Vaccinated because this variable is not included in first model (SIR-F)</span>
-<span class="n">snl</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">y0_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Vaccinated&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span></span><span class="c1"># Describe the scenarios</span>
+<span class="n">snl</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1721,23 +2161,28 @@ SIR-FV
     </tr>
     <tr>
       <th>Vaccine</th>
-      <td>36797</td>
-      <td>01Feb2020</td>
-      <td>62209</td>
+      <td>114877</td>
+      <td>09Mar2020</td>
+      <td>710872</td>
       <td>0</td>
-      <td>4003</td>
-      <td>2.50</td>
+      <td>25070</td>
+      <td>1.72</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
+</div>
+<div class="section" id="2.-History-of-reproduction-number">
+<h4>2. History of reproduction number<a class="headerlink" href="#2.-History-of-reproduction-number" title="Permalink to this headline">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">Scenario.history(target=&quot;Rt&quot;)</span></code> shows the history of reproduction number.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Rt&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># Show the history of reproduction number</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Rt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1745,15 +2190,20 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_41_0.png" src="_images/usage_theoretical_41_0.png" />
+<img alt="_images/usage_theoretical_80_0.png" src="_images/usage_theoretical_80_0.png" />
 </div>
 </div>
+</div>
+<div class="section" id="3.-Simulated-number-of-cases-of-the-specified-variable">
+<h4>3. Simulated number of cases of the specified variable<a class="headerlink" href="#3.-Simulated-number-of-cases-of-the-specified-variable" title="Permalink to this headline">¶</a></h4>
+<p>We can also set Confired/Infected/Fatal/Recovered as the target of <code class="docutils literal notranslate"><span class="pre">Scenario.history()</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Infected&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># The number of infected cases</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Infected&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1761,15 +2211,16 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_42_0.png" src="_images/usage_theoretical_42_0.png" />
+<img alt="_images/usage_theoretical_82_0.png" src="_images/usage_theoretical_82_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Fatal&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># The number of fatal cases</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">&quot;Fatal&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1777,18 +2228,21 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_43_0.png" src="_images/usage_theoretical_43_0.png" />
+<img alt="_images/usage_theoretical_83_0.png" src="_images/usage_theoretical_83_0.png" />
+</div>
 </div>
 </div>
 </div>
 <div class="section" id="Simulation-of-each-scenario">
 <h3>Simulation of each scenario<a class="headerlink" href="#Simulation-of-each-scenario" title="Permalink to this headline">¶</a></h3>
+<p>We can simulate the all kind of the number of cases for a specific scenario with <code class="docutils literal notranslate"><span class="pre">Scenario.simulate()</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># Main scenario</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1796,15 +2250,16 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_45_0.png" src="_images/usage_theoretical_45_0.png" />
+<img alt="_images/usage_theoretical_85_0.png" src="_images/usage_theoretical_85_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># Lockdown scenario</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lockdown&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1812,15 +2267,16 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_46_0.png" src="_images/usage_theoretical_46_0.png" />
+<img alt="_images/usage_theoretical_86_0.png" src="_images/usage_theoretical_86_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">)</span>
+<span></span><span class="c1"># Medicine scenario</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Medicine&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1828,15 +2284,16 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_47_0.png" src="_images/usage_theoretical_47_0.png" />
+<img alt="_images/usage_theoretical_87_0.png" src="_images/usage_theoretical_87_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">,</span> <span class="n">y0_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Vaccinated&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span></span><span class="c1"># Vaccine scenario</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">snl</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Vaccine&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1844,9 +2301,10 @@ SIR-FV
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/usage_theoretical_48_0.png" src="_images/usage_theoretical_48_0.png" />
+<img alt="_images/usage_theoretical_88_0.png" src="_images/usage_theoretical_88_0.png" />
 </div>
 </div>
+<p><strong>For futher analysis, let’s change the parameter settings and add new scenarios!</strong></p>
 </div>
 </div>
 </div>
@@ -1857,7 +2315,7 @@ SIR-FV
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="usage_policy.html" class="btn btn-neutral float-right" title="Usage: policy measures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="covsirphy.html" class="btn btn-neutral float-right" title="covsirphy package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="usage_phases.html" class="btn btn-neutral float-left" title="Usage: phases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
 import pytest
 from covsirphy import DataLoader
 
@@ -48,3 +49,28 @@ def vaccine_data(data_loader):
 @pytest.fixture(scope="session")
 def pyramid_data(data_loader):
     return data_loader.pyramid()
+
+
+@pytest.fixture(
+    scope="session",
+    params=[
+        "jhu_data", "population_data", "oxcgrt_data", "japan_data",
+        "pcr_data", "vaccine_data", "pyramid_data",
+        # "linelist_data",
+    ])
+def data(request):
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(scope="function")
+def imgfile():
+    dirpath = Path("input")
+    dirpath.mkdir(exist_ok=True)
+    filepath = dirpath.joinpath("test.jpg")
+    yield str(filepath)
+    try:
+        filepath.unlink(missing_ok=True)
+    except TypeError:
+        # Python 3.7
+        if filepath.exists():
+            filepath.unlink()

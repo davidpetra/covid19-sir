@@ -36,8 +36,6 @@
         <script src="_static/clipboard.min.js"></script>
         <script src="_static/copybutton.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -69,7 +67,7 @@
             
             
               <div class="version">
-                2.15.0-mu
+                2.17.0-epsilon
               </div>
             
           
@@ -104,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="usage_dataset.html">Usage: datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage_phases.html">Usage: phases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage_theoretical.html">Usage: SIR-derived models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage_policy.html">Usage: policy measures</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="covsirphy.html">covsirphy package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="covsirphy.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.analysis.html">covsirphy.analysis package</a></li>
@@ -115,7 +112,11 @@
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.util.html">covsirphy.util package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">covsirphy.visualization package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.bar_plot">covsirphy.visualization.bar_plot module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.colored_map">covsirphy.visualization.colored_map module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.japan_map">covsirphy.visualization.japan_map module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.line_plot">covsirphy.visualization.line_plot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.trend_plot">covsirphy.visualization.trend_plot module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.visualization.vbase">covsirphy.visualization.vbase module</a></li>
 </ul>
 </li>
@@ -124,7 +125,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="markdown/TERM.html">Term definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="markdown/TERM.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CODE_OF_CONDUCT.html">Contributor Covenant Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SECURITY.html">Security policy of CovsirPhy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Guideline of contribution</a></li>
@@ -226,11 +227,133 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-covsirphy.visualization.bar_plot">
+<span id="covsirphy-visualization-bar-plot-module"></span><h2>covsirphy.visualization.bar_plot module<a class="headerlink" href="#module-covsirphy.visualization.bar_plot" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="covsirphy.visualization.bar_plot.BarPlot">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">BarPlot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tight'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#BarPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.BarPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#covsirphy.visualization.vbase.VisualizeBase" title="covsirphy.visualization.vbase.VisualizeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.visualization.vbase.VisualizeBase</span></code></a></p>
+<p>Create a bar plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>bbox_inches</strong> (<em>str</em>) – bounding box in inches when creating the figure</p></li>
+<li><p><strong>kwargs</strong> – the other arguments of matplotlib.pyplot.savefig()</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="covsirphy.visualization.bar_plot.BarPlot.line">
+<code class="sig-name descname"><span class="pre">line</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linestyle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">':'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#BarPlot.line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.BarPlot.line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show vertical/horizontal lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>list</em><em>[</em><em>int/float</em><em>] or </em><em>None</em>) – list of x values of vertical lines or None</p></li>
+<li><p><strong>h</strong> (<em>list</em><em>[</em><em>int/float</em><em>] or </em><em>None</em>) – list of y values of horizontal lines or None</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – color of the line</p></li>
+<li><p><strong>linestyle</strong> (<em>str</em>) – linestyle</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.bar_plot.BarPlot.plot">
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#BarPlot.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.BarPlot.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create bar plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>labels of the bars</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><p>variables to show</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>vartical</strong> (<em>bool</em>) – whether vertical bar plot (True) or horizontal bar plot (False)</p></li>
+<li><p><strong>colormap</strong> (<em>str</em><em>, </em><em>matplotlib colormap object</em><em> or </em><em>None</em>) – colormap, please refer to <a class="reference external" href="https://matplotlib.org/examples/color/colormaps_reference.html">https://matplotlib.org/examples/color/colormaps_reference.html</a></p></li>
+<li><p><strong>color_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>] or </em><em>None</em>) – dictionary of column names (keys) and colors (values)</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of pandas.DataFrame.plot()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.bar_plot.BarPlot.x_axis">
+<code class="sig-name descname"><span class="pre">x_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#BarPlot.x_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.BarPlot.x_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>xlabel</strong> (<em>str</em><em> or </em><em>None</em>) – x-label</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.bar_plot.BarPlot.y_axis">
+<code class="sig-name descname"><span class="pre">y_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Cases'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">math_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#BarPlot.y_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.BarPlot.y_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ylabel</strong> (<em>str</em><em> or </em><em>None</em>) – y-label</p></li>
+<li><p><strong>y_logscale</strong> (<em>bool</em>) – whether use log-scale in y-axis or not</p></li>
+<li><p><strong>ylim</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – limit of y dimain</p></li>
+<li><p><strong>math_scale</strong> (<em>bool</em>) – whether use LaTEX or not in y-label</p></li>
+<li><p><strong>y_integer</strong> (<em>bool</em>) – whether force to show the values as integer or not</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If None is included in ylim, the values will be automatically determined by Matplotlib</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="covsirphy.visualization.bar_plot.bar_plot">
+<code class="sig-name descname"><span class="pre">bar_plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/bar_plot.html#bar_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.bar_plot.bar_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function: show chronological change of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>Date (pandas.Timestamp)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><p>variables to show</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – title of the figure</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – whether show legend or not</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of the following classes and methods.
+- covsirphy.BarPlot() and its methods,
+- matplotlib.pyplot.savefig(), matplotlib.pyplot.legend(),
+- pandas.DataFrame.plot()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="module-covsirphy.visualization.colored_map">
 <span id="covsirphy-visualization-colored-map-module"></span><h2>covsirphy.visualization.colored_map module<a class="headerlink" href="#module-covsirphy.visualization.colored_map" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="covsirphy.visualization.colored_map.ColoredMap">
-<em class="property">class </em><code class="sig-name descname">ColoredMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/colored_map.html#ColoredMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#covsirphy.visualization.colored_map.ColoredMap" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ColoredMap</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/colored_map.html#ColoredMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.colored_map.ColoredMap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#covsirphy.visualization.vbase.VisualizeBase" title="covsirphy.visualization.vbase.VisualizeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.visualization.vbase.VisualizeBase</span></code></a></p>
 <p>Create global map with pandas.DataFrame.</p>
 <dl class="field-list simple">
@@ -242,32 +365,51 @@
 </dd>
 </dl>
 <dl class="py method">
+<dt id="covsirphy.visualization.colored_map.ColoredMap.directory">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">directory</span></code><a class="headerlink" href="#covsirphy.visualization.colored_map.ColoredMap.directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>directory to save the downloaded files of geometry information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="covsirphy.visualization.colored_map.ColoredMap.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">series</span></em>, <em class="sig-param"><span class="n">index_name</span><span class="o">=</span><span class="default_value">'ISO3'</span></em>, <em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'input'</span></em>, <em class="sig-param"><span class="n">usa</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/colored_map.html#ColoredMap.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#covsirphy.visualization.colored_map.ColoredMap.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Country'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/colored_map.html#ColoredMap.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.colored_map.ColoredMap.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set dataframe and the variable to show in a colored map.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>series</strong> (<em>pandas.Series</em>) – <p>data to show
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em>) – <p>data to show
 Index</p>
 <blockquote>
-<div><p>ISO3 codes, country names or province names</p>
+<div><p>reset index</p>
 </div></blockquote>
 <dl class="simple">
-<dt>Values</dt><dd><ul>
-<li><p>(int or float): values to color the map</p></li>
+<dt>Columns</dt><dd><ul>
+<li><p>Country (str or pandas.Category): country name(s)</p></li>
+<li><p>Province (str or pandas.Category): province names, necessary when &#64;level is ‘Province’</p></li>
+<li><p>Value (int or float or None): values to coloring the map</p></li>
+<li><p>ISO3 (str): ISO3 codes, optional</p></li>
 </ul>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>index_name</strong> (<em>str</em>) – index name, ‘ISO3’, ‘Country’ or ‘Province’</p></li>
-<li><p><strong>directory</strong> (<em>str</em>) – directory to save the downloaded files of geometry information</p></li>
-<li><p><strong>usa</strong> (<em>bool</em>) – if True, not show islands of USA when &#64;index_name is ‘Province’</p></li>
+<li><p><strong>level</strong> (<em>str</em>) – ‘Country’ (global map) or ‘Province’ (country-specific map)</p></li>
+<li><p><strong>logscale</strong> (<em>bool</em>) – whether convert the value to log10 scale values or not</p></li>
+<li><p><strong>included</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – included countries/provinces or None (all)</p></li>
+<li><p><strong>excluded</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – excluded countries/provinces or None (all)</p></li>
 <li><p><strong>kwargs</strong> – arguments of geopandas.GeoDataFrame.plot() except for ‘column’</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="covsirphy.html#covsirphy.UnExpectedValueError" title="covsirphy.UnExpectedValueError"><strong>UnExpectedValueError</strong></a> – incorrect value was applied as &#64;index_name</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – labels for data are not unique</p></li>
+<li><p><a class="reference internal" href="covsirphy.html#covsirphy.UnExpectedValueError" title="covsirphy.UnExpectedValueError"><strong>UnExpectedValueError</strong></a> – some countries’ records are included when &#64;level is ‘Province’</p></li>
+<li><p><a class="reference internal" href="covsirphy.html#covsirphy.SubsetNotFoundError" title="covsirphy.SubsetNotFoundError"><strong>SubsetNotFoundError</strong></a> – no geometry information available for the labels</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -275,11 +417,268 @@ Index</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-covsirphy.visualization.japan_map">
+<span id="covsirphy-visualization-japan-map-module"></span><h2>covsirphy.visualization.japan_map module<a class="headerlink" href="#module-covsirphy.visualization.japan_map" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-covsirphy.visualization.line_plot">
+<span id="covsirphy-visualization-line-plot-module"></span><h2>covsirphy.visualization.line_plot module<a class="headerlink" href="#module-covsirphy.visualization.line_plot" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="covsirphy.visualization.line_plot.LinePlot">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">LinePlot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tight'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#LinePlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.LinePlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#covsirphy.visualization.vbase.VisualizeBase" title="covsirphy.visualization.vbase.VisualizeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.visualization.vbase.VisualizeBase</span></code></a></p>
+<p>Create line plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>bbox_inches</strong> (<em>str</em>) – bounding box in inches when creating the figure</p></li>
+<li><p><strong>kwargs</strong> – the other arguments of matplotlib.pyplot.savefig()</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="covsirphy.visualization.line_plot.LinePlot.line">
+<code class="sig-name descname"><span class="pre">line</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linestyle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">':'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#LinePlot.line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.LinePlot.line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show vertical/horizontal lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>list/tuple</em><em>[</em><em>int/float</em><em>] or </em><em>None</em>) – list of x values of vertical lines or None</p></li>
+<li><p><strong>h</strong> (<em>list/tuple</em><em>[</em><em>int/float</em><em>] or </em><em>None</em>) – list of y values of horizontal lines or None</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – color of the line</p></li>
+<li><p><strong>linestyle</strong> (<em>str</em>) – linestyle</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.line_plot.LinePlot.plot">
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#LinePlot.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.LinePlot.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot chronological change of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>x values</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><p>y variables to show</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>colormap</strong> (<em>str</em><em>, </em><em>matplotlib colormap object</em><em> or </em><em>None</em>) – colormap, please refer to <a class="reference external" href="https://matplotlib.org/examples/color/colormaps_reference.html">https://matplotlib.org/examples/color/colormaps_reference.html</a></p></li>
+<li><p><strong>color_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>] or </em><em>None</em>) – dictionary of column names (keys) and colors (values)</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of pandas.DataFrame.plot()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.line_plot.LinePlot.x_axis">
+<code class="sig-name descname"><span class="pre">x_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#LinePlot.x_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.LinePlot.x_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlabel</strong> (<em>str</em><em> or </em><em>None</em>) – x-label</p></li>
+<li><p><strong>x_logscale</strong> (<em>bool</em>) – whether use log-scale in x-axis or not</p></li>
+<li><p><strong>xlim</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – limit of x dimain</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If None is included in xlim, the values will be automatically determined by Matplotlib</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.line_plot.LinePlot.y_axis">
+<code class="sig-name descname"><span class="pre">y_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Cases'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">math_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#LinePlot.y_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.LinePlot.y_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ylabel</strong> (<em>str</em><em> or </em><em>None</em>) – y-label</p></li>
+<li><p><strong>y_logscale</strong> (<em>bool</em>) – whether use log-scale in y-axis or not</p></li>
+<li><p><strong>ylim</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – limit of y dimain</p></li>
+<li><p><strong>math_scale</strong> (<em>bool</em>) – whether use LaTEX or not in y-label</p></li>
+<li><p><strong>y_integer</strong> (<em>bool</em>) – whether force to show the values as integer or not</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If None is included in ylim, the values will be automatically determined by Matplotlib</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="covsirphy.visualization.line_plot.line_plot">
+<code class="sig-name descname"><span class="pre">line_plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/line_plot.html#line_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.line_plot.line_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function: show chronological change of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>Date (pandas.Timestamp)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><p>variables to show</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – title of the figure</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – whether show legend or not</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of the following classes and methods.
+- covsirphy.LinePlot() and its methods,
+- matplotlib.pyplot.savefig(), matplotlib.pyplot.legend(),
+- pandas.DataFrame.plot()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-covsirphy.visualization.trend_plot">
+<span id="covsirphy-visualization-trend-plot-module"></span><h2>covsirphy.visualization.trend_plot module<a class="headerlink" href="#module-covsirphy.visualization.trend_plot" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="covsirphy.visualization.trend_plot.TrendPlot">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TrendPlot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tight'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#TrendPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.TrendPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#covsirphy.visualization.line_plot.LinePlot" title="covsirphy.visualization.line_plot.LinePlot"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.visualization.line_plot.LinePlot</span></code></a></p>
+<p>Create line plot with actual values for S-R trend analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>bbox_inches</strong> (<em>str</em>) – bounding box in inches when creating the figure</p></li>
+<li><p><strong>kwargs</strong> – the other arguments of matplotlib.pyplot.savefig()</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="covsirphy.visualization.trend_plot.TrendPlot.legend">
+<code class="sig-name descname"><span class="pre">legend</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_to_anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">-</span> <span class="pre">0.4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">center'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#TrendPlot.legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.TrendPlot.legend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set legend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_to_anchor</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – distance of legend and plot</p></li>
+<li><p><strong>bbox_loc</strong> (<em>str</em>) – location of legend</p></li>
+<li><p><strong>ncol</strong> (<em>int</em><em> or </em><em>None</em>) – the number of columns that the legend has</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of matplotlib.pyplot.legend()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.trend_plot.TrendPlot.plot">
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Actual'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#TrendPlot.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.TrendPlot.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot chronological change of the data with multiple lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>x values</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><ul>
+<li><p>column defined by &#64;actual_col, actual values for y-axis</p></li>
+<li><p>columns defined by &#64;predicted_cols, predicted values for y-axis</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>actual_col</strong> (<em>str</em>) – column name for y-axis</p></li>
+<li><p><strong>predicted_cols</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – list of columns which have predicted values or None (all except for &#64;actual_col)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.trend_plot.TrendPlot.x_axis">
+<code class="sig-name descname"><span class="pre">x_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#TrendPlot.x_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.TrendPlot.x_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xlabel</strong> (<em>str</em><em> or </em><em>None</em>) – x-label</p></li>
+<li><p><strong>xlim</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – limit of x dimain</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When xlim[0] is None and lower x-axis limit determined by matplotlib automatically is lower than 0,
+lower x-axis limit will be set to 0.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.trend_plot.TrendPlot.y_axis">
+<code class="sig-name descname"><span class="pre">y_axis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#TrendPlot.y_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.TrendPlot.y_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set x axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ylabel</strong> (<em>str</em><em> or </em><em>None</em>) – y-label</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="covsirphy.visualization.trend_plot.trend_plot">
+<code class="sig-name descname"><span class="pre">trend_plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/trend_plot.html#trend_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.trend_plot.trend_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function: show chronological change of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – <p>data to show
+Index</p>
+<blockquote>
+<div><p>x values</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Columns</dt><dd><ul>
+<li><p>column defined by &#64;actual_col, actual values for y-axis</p></li>
+<li><p>columns defined by &#64;predicted_cols, predicted values for y-axis</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>actual_col</strong> (<em>str</em>) – column name for y-axis</p></li>
+<li><p><strong>predicted_cols</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of columns which have predicted values</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – title of the figure</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em> or </em><em>None</em>) – filename to save the figure or None (display)</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – whether show legend or not</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of the following classes and methods.
+- covsirphy.TrendPlot() and its methods,
+- matplotlib.pyplot.savefig() and matplotlib.pyplot.legend()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="module-covsirphy.visualization.vbase">
 <span id="covsirphy-visualization-vbase-module"></span><h2>covsirphy.visualization.vbase module<a class="headerlink" href="#module-covsirphy.visualization.vbase" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="covsirphy.visualization.vbase.VisualizeBase">
-<em class="property">class </em><code class="sig-name descname">VisualizeBase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bbox_inches</span><span class="o">=</span><span class="default_value">'tight'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">VisualizeBase</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tight'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="covsirphy.util.html#covsirphy.util.term.Term" title="covsirphy.util.term.Term"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.util.term.Term</span></code></a></p>
 <p>Base class for visualization.</p>
 <dl class="field-list simple">
@@ -293,7 +692,7 @@ Index</p>
 </dl>
 <dl class="py method">
 <dt id="covsirphy.visualization.vbase.VisualizeBase.ax">
-<em class="property">property </em><code class="sig-name descname">ax</code><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.ax" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">ax</span></code><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.ax" title="Permalink to this definition">¶</a></dt>
 <dd><p>axis</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -303,8 +702,30 @@ Index</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="covsirphy.visualization.vbase.VisualizeBase.legend">
+<code class="sig-name descname"><span class="pre">legend</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_to_anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">-</span> <span class="pre">0.2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">center'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.legend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set legend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_to_anchor</strong> (<em>tuple</em><em>(</em><em>int</em><em> or </em><em>float</em><em>, </em><em>int</em><em> or </em><em>float</em><em>)</em>) – distance of legend and plot</p></li>
+<li><p><strong>bbox_loc</strong> (<em>str</em>) – location of legend</p></li>
+<li><p><strong>ncol</strong> (<em>int</em><em> or </em><em>None</em>) – the number of columns that the legend has</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of matplotlib.pyplot.legend()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.visualization.vbase.VisualizeBase.legend_hide">
+<code class="sig-name descname"><span class="pre">legend_hide</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.legend_hide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.legend_hide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide legend.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="covsirphy.visualization.vbase.VisualizeBase.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method for plotting. This will be defined in child classes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
@@ -315,7 +736,7 @@ Index</p>
 
 <dl class="py method">
 <dt id="covsirphy.visualization.vbase.VisualizeBase.tick_params">
-<code class="sig-name descname">tick_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.tick_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.tick_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">tick_params</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/visualization/vbase.html#VisualizeBase.tick_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.tick_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Directly calling matplotlib.pyplot.tick_params,
 change the appearance of ticks, tick labels and gridlines.</p>
 <dl class="field-list simple">
@@ -327,7 +748,7 @@ change the appearance of ticks, tick labels and gridlines.</p>
 
 <dl class="py method">
 <dt id="covsirphy.visualization.vbase.VisualizeBase.title">
-<em class="property">property </em><code class="sig-name descname">title</code><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.title" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">title</span></code><a class="headerlink" href="#covsirphy.visualization.vbase.VisualizeBase.title" title="Permalink to this definition">¶</a></dt>
 <dd><p>title of the figure</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>

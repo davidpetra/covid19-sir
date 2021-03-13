@@ -36,8 +36,6 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -67,7 +65,7 @@
             
             
               <div class="version">
-                2.15.0-mu
+                2.17.0-epsilon
               </div>
             
           
@@ -102,9 +100,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_dataset.html">Usage: datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_phases.html">Usage: phases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_theoretical.html">Usage: SIR-derived models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../usage_policy.html">Usage: policy measures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../covsirphy.html">covsirphy package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../markdown/TERM.html">Term definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../markdown/TERM.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CODE_OF_CONDUCT.html">Contributor Covenant Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../SECURITY.html">Security policy of CovsirPhy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Guideline of contribution</a></li>
@@ -297,6 +294,20 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Please execute </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">method_name</span><span class="si">}</span><span class="s2"> in advance</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
+<div class="viewcode-block" id="NotRegisteredMainError"><a class="viewcode-back" href="../../../covsirphy.util.html#covsirphy.NotRegisteredMainError">[docs]</a><span class="k">class</span> <span class="nc">NotRegisteredMainError</span><span class="p">(</span><span class="n">UnExecutedError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Error when main datasets were not registered.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="NotRegisteredExtraError"><a class="viewcode-back" href="../../../covsirphy.util.html#covsirphy.NotRegisteredExtraError">[docs]</a><span class="k">class</span> <span class="nc">NotRegisteredExtraError</span><span class="p">(</span><span class="n">UnExecutedError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Error when extra datasets were not registered.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
 <div class="viewcode-block" id="PCRIncorrectPreconditionError"><a class="viewcode-back" href="../../../covsirphy.util.html#covsirphy.PCRIncorrectPreconditionError">[docs]</a><span class="k">class</span> <span class="nc">PCRIncorrectPreconditionError</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Error when checking preconditions in the PCR data.</span>
@@ -366,7 +377,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s1</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;@ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be selected from &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">candidates_str</span><span class="si">}</span><span class="s2">&#39;,&quot;</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be selected from &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">candidates_str</span><span class="si">}</span><span class="s2">&#39;,&quot;</span>
         <span class="n">s2</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;but </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> was applied.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">s2</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>

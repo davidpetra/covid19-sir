@@ -10,19 +10,22 @@ except ImportError:
 # version
 from covsirphy.__version__ import __version__
 # util
-from covsirphy.util.plotting import line_plot, line_plot_multiple
-from covsirphy.util.map import jpn_map
 from covsirphy.util.optimize import Optimizer
 from covsirphy.util.stopwatch import StopWatch
 from covsirphy.util.error import deprecate
 from covsirphy.util.error import SubsetNotFoundError, ScenarioNotFoundError, UnExecutedError
 from covsirphy.util.error import PCRIncorrectPreconditionError, NotInteractiveError, UnExpectedValueError
+from covsirphy.util.error import NotRegisteredMainError, NotRegisteredExtraError
 from covsirphy.util.file import save_dataframe
 from covsirphy.util.argument import find_args
 from covsirphy.util.term import Term, Word
 # visualization
 from covsirphy.visualization.vbase import VisualizeBase
 from covsirphy.visualization.colored_map import ColoredMap
+from covsirphy.visualization.japan_map import jpn_map
+from covsirphy.visualization.line_plot import LinePlot, line_plot
+from covsirphy.visualization.bar_plot import BarPlot, bar_plot
+from covsirphy.visualization.trend_plot import TrendPlot, trend_plot, line_plot_multiple
 # cleaning
 from covsirphy.cleaning.cbase import CleaningBase
 from covsirphy.cleaning.jhu_data import JHUData
@@ -78,18 +81,18 @@ __all__ = [
     "JHUData", "CountryData", "PopulationData", "OxCGRTData", "VaccineData",
     "PopulationPyramidData",
     "LinelistData", "PCRData", "JapanData", "JHUDataComplementHandler",
-    "ModelBase", "SIR", "SIRD", "SIRF", "SIRFV", "SEWIRF",
+    "ModelBase", "SIR", "SIRD", "SIRF", "SEWIRF",
     "Estimator", "Trend", "Optimizer",
-    "line_plot", "StopWatch", "deprecate", "find_args",
-    "line_plot_multiple",
+    "StopWatch", "deprecate", "find_args",
     "save_dataframe",
     "PolicyMeasures",
     "SubsetNotFoundError", "ScenarioNotFoundError", "UnExecutedError",
     "PCRIncorrectPreconditionError", "NotInteractiveError",
-    "UnExpectedValueError",
+    "UnExpectedValueError", "NotRegisteredMainError", "NotRegisteredExtraError",
     "VisualizeBase", "ColoredMap",
+    "LinePlot", "line_plot", "BarPlot", "bar_plot", "TrendPlot", "trend_plot",
     # Deprecated
-    "Population", "Word", "jpn_map",
+    "Population", "Word", "jpn_map", "SIRFV", "line_plot_multiple",
 ]
 
 # Show exceptions in better format if used from command line

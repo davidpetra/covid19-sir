@@ -21,11 +21,14 @@ class Term(object):
     F = "Fatal"
     R = "Recovered"
     FR = "Fatal or Recovered"
-    V = "Vaccinated"
     E = "Exposed"
     W = "Waiting"
     TESTS = "Tests"
+    # Vaccination
     VAC = "Vaccinations"
+    V = "Vaccinated"
+    V_ONCE = f"{V}_once"
+    V_FULL = f"{V}_full"
     PRODUCT = "Product"
     # Column names
     DATE = "Date"
@@ -85,6 +88,7 @@ class Term(object):
     MAIN = "Main"
     # Flag
     UNKNOWN = "-"
+    OTHERS = "Others"
 
     @classmethod
     def num2str(cls, num):
@@ -181,20 +185,16 @@ class Term(object):
         """
         df = target.copy()
         if not isinstance(df, pd.DataFrame):
-            raise TypeError(
-                f"@{name} must be a instance of (pandas.DataFrame).")
+            raise TypeError(f"@{name} must be a instance of (pandas.DataFrame).")
         if time_index and (not isinstance(df.index, pd.DatetimeIndex)):
             raise TypeError(f"Index of @{name} must be <pd.DatetimeIndex>.")
         if columns is None:
             return df
         if not set(columns).issubset(df.columns):
-            cols_str = ", ".join(
-                col for col in columns if col not in df.columns)
+            cols_str = ", ".join(col for col in columns if col not in df.columns)
             included = ", ".join(df.columns.tolist())
             s1 = f"Expected columns were not included in {name} with {included}."
-            raise KeyError(
-                f"{s1} {cols_str} must be included."
-            )
+            raise KeyError(f"{s1} {cols_str} must be included.")
         return df
 
     @staticmethod

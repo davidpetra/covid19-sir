@@ -79,10 +79,12 @@ class OxCGRTData(CleaningBase):
                 "Congo": "Republic of the Congo",
                 # South Korea
                 "Korea, South": "South Korea",
-                # Diamond princess
-                "Diamond Princess": "Others",
             }
         )
+        # Set 'Others' as the country name of cruise ships
+        ships = ["Diamond Princess", "Costa Atlantica", "Grand Princess", "MS Zaandam"]
+        for ship in ships:
+            df.loc[df[self.COUNTRY] == ship, self.COUNTRY] = self.OTHERS
         # Confirm the expected columns are in raw data
         self._ensure_dataframe(
             df, name="the raw data", columns=self.OXCGRT_COLS
@@ -138,3 +140,25 @@ class OxCGRTData(CleaningBase):
         This method is not defined for OxCGRTData class.
         """
         raise NotImplementedError
+
+    def map(self, country=None, variable="Stringency_index", date=None, **kwargs):
+        """
+        Create global colored map to show the values.
+
+        Args:
+            country (None): always None
+            variable (str): variable name to show
+            date (str or None): date of the records or None (the last value)
+            kwargs: arguments of ColoredMap() and ColoredMap.plot()
+
+        Raises:
+            NotImplementedError: @country was specified
+        """
+        if country is not None:
+            raise NotImplementedError("@country cannot be specified, always None.")
+        # Date
+        date_str = date or self.cleaned()[self.DATE].max().strftime(self.DATE_FORMAT)
+        country_str = country or "Global"
+        title = f"{country_str}: {variable.lower().replace('_', ' ')} on {date_str}"
+        # Global map
+        return self._colored_map_global(variable=variable, title=title, date=date, logscale=False, **kwargs)

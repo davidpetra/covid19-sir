@@ -36,8 +36,6 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -67,7 +65,7 @@
             
             
               <div class="version">
-                2.15.0-mu
+                2.17.0-epsilon
               </div>
             
           
@@ -102,9 +100,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_dataset.html">Usage: datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_phases.html">Usage: phases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage_theoretical.html">Usage: SIR-derived models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../usage_policy.html">Usage: policy measures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../covsirphy.html">covsirphy package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../markdown/TERM.html">Term definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../markdown/TERM.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CODE_OF_CONDUCT.html">Contributor Covenant Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../SECURITY.html">Security policy of CovsirPhy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Guideline of contribution</a></li>
@@ -197,11 +194,14 @@
     <span class="n">F</span> <span class="o">=</span> <span class="s2">&quot;Fatal&quot;</span>
     <span class="n">R</span> <span class="o">=</span> <span class="s2">&quot;Recovered&quot;</span>
     <span class="n">FR</span> <span class="o">=</span> <span class="s2">&quot;Fatal or Recovered&quot;</span>
-    <span class="n">V</span> <span class="o">=</span> <span class="s2">&quot;Vaccinated&quot;</span>
     <span class="n">E</span> <span class="o">=</span> <span class="s2">&quot;Exposed&quot;</span>
     <span class="n">W</span> <span class="o">=</span> <span class="s2">&quot;Waiting&quot;</span>
     <span class="n">TESTS</span> <span class="o">=</span> <span class="s2">&quot;Tests&quot;</span>
+    <span class="c1"># Vaccination</span>
     <span class="n">VAC</span> <span class="o">=</span> <span class="s2">&quot;Vaccinations&quot;</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="s2">&quot;Vaccinated&quot;</span>
+    <span class="n">V_ONCE</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">V</span><span class="si">}</span><span class="s2">_once&quot;</span>
+    <span class="n">V_FULL</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">V</span><span class="si">}</span><span class="s2">_full&quot;</span>
     <span class="n">PRODUCT</span> <span class="o">=</span> <span class="s2">&quot;Product&quot;</span>
     <span class="c1"># Column names</span>
     <span class="n">DATE</span> <span class="o">=</span> <span class="s2">&quot;Date&quot;</span>
@@ -261,6 +261,7 @@
     <span class="n">MAIN</span> <span class="o">=</span> <span class="s2">&quot;Main&quot;</span>
     <span class="c1"># Flag</span>
     <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+    <span class="n">OTHERS</span> <span class="o">=</span> <span class="s2">&quot;Others&quot;</span>
 
 <div class="viewcode-block" id="Term.num2str"><a class="viewcode-back" href="../../../covsirphy.util.html#covsirphy.Term.num2str">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">num2str</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
@@ -357,20 +358,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a instance of (pandas.DataFrame).&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a instance of (pandas.DataFrame).&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">time_index</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Index of @</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be &lt;pd.DatetimeIndex&gt;.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">df</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-            <span class="n">cols_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="n">cols_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
             <span class="n">included</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
             <span class="n">s1</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Expected columns were not included in </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">included</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols_str</span><span class="si">}</span><span class="s2"> must be included.&quot;</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s1</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cols_str</span><span class="si">}</span><span class="s2"> must be included.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df</span>
 
     <span class="nd">@staticmethod</span>

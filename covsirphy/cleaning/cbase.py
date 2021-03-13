@@ -7,8 +7,6 @@ import country_converter as coco
 from dask import dataframe as dd
 import geopandas as gpd
 from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import numpy as np
 import pandas as pd
 from covsirphy.util.argument import find_args
 from covsirphy.util.error import deprecate, SubsetNotFoundError, UnExpectedValueError
@@ -24,9 +22,11 @@ class CleaningBase(Term):
         filename (str or None): CSV filename of the dataset
         citation (str or None): citation
 
-    Returns:
-        If @filename is None, empty dataframe will be set as raw data.
-        If @citation is None, citation will be empty string.
+    Note:
+        - If @filename is None, empty dataframe will be set as raw data and geometry information will be saved in "input" directory.
+        - If @filename is not None, geometry information will be saved in the directory which has the file.
+        - The directory of geometry information could be changed with .directory property.
+        - If @citation is None, citation will be empty string.
     """
 
     def __init__(self, filename, citation=None):
@@ -41,6 +41,11 @@ class CleaningBase(Term):
             ).compute()
             self._cleaned_df = self._cleaning()
         self._citation = citation or ""
+        # Directory that save the file
+        if filename is None:
+            self._dirpath = Path("input")
+        else:
+            self._dirpath = Path(filename).resolve().parent
 
     @property
     def raw(self):
@@ -56,6 +61,17 @@ class CleaningBase(Term):
         """
         self._raw = self._ensure_dataframe(dataframe, name="dataframe")
 
+    @property
+    def directory(self):
+        """
+        str: directory name to save geometry information
+        """
+        return str(self._dirpath)
+
+    @directory.setter
+    def directory(self, name):
+        self._dirpath = Path(name)
+
     @staticmethod
     def load(urlpath, header=0, columns=None, dtype="object"):
         """
@@ -70,6 +86,7 @@ class CleaningBase(Term):
         Returns:
             pd.DataFrame: raw dataset
         """
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         kwargs = {
             "low_memory": False, "dtype": dtype, "header": header, "usecols": columns}
         try:
@@ -109,24 +126,29 @@ class CleaningBase(Term):
     def citation(self, description):
         self._citation = str(description)
 
-    def ensure_country_name(self, country):
+    def ensure_country_name(self, country, errors="raise"):
         """
         Ensure that the country name is correct.
         If not, the correct country name will be found.
 
         Args:
             country (str): country name
+            errors (str): 'raise' or 'coerce'
 
         Returns:
             str: country name
+
+        Raises:
+            SubsetNotFoundError: no records were found for the country and @errors is 'raise'
         """
-        df = self._ensure_dataframe(
-            self._cleaned_df, name="the cleaned dataset", columns=[self.COUNTRY])
+        df = self._cleaned_df.copy()
+        self._ensure_dataframe(df, name="the cleaned dataset", columns=[self.COUNTRY])
         selectable_set = set(df[self.COUNTRY].unique())
         # return country name as-is if selectable
         if country in selectable_set:
             return country
         # Convert country name
+        warnings.simplefilter("ignore", FutureWarning)
         converted = coco.convert(country, to="name_short", not_found=None)
         # Additional abbr
         abbr_dict = {
@@ -139,7 +161,8 @@ class CleaningBase(Term):
         # Return the name if registered in the dataset
         if name in selectable_set:
             return name
-        raise SubsetNotFoundError(country=country, country_alias=name)
+        if errors == "raise":
+            raise SubsetNotFoundError(country=country, country_alias=name)
 
     @deprecate("CleaningBase.iso3_to_country()", new="CleaningBase.ensure_country_name()")
     def iso3_to_country(self, iso3_code):
@@ -194,33 +217,77 @@ class CleaningBase(Term):
             return country
         return f"{country}{cls.SEP}{province}"
 
+    def layer(self, country=None):
+        """
+        Return the cleaned data at the selected layer.
+
+        Args:
+            country (str or None): country name or None (country level data or country-specific dataset)
+
+        Returns:
+            pandas.DataFrame:
+                Index
+                    reset index
+                Columns
+                - Country (str): country names
+                - Province (str): province names (or removed when country level data)
+                - any other columns of the cleaned data
+
+        Raises:
+            SubsetNotFoundError: no records were found for the country (when @country is not None)
+            KeyError: @country was None, but country names were not registered in the dataset
+
+        Note:
+            When @country is None, country level data will be returned.
+            When @country is a country name, province level data in the selected country will be returned.
+        """
+        df = self._cleaned_df.copy()
+        self._ensure_dataframe(df, name="the cleaned dataset", columns=[self.COUNTRY])
+        if self.PROVINCE not in df:
+            df[self.PROVINCE] = self.UNKNOWN
+        df[self.AREA_COLUMNS] = df[self.AREA_COLUMNS].astype(str)
+        # Country level data
+        if country is None:
+            df = df.loc[df[self.PROVINCE] == self.UNKNOWN]
+            return df.drop(self.PROVINCE, axis=1).reset_index(drop=True)
+        # Province level data at the selected country
+        country_alias = self.ensure_country_name(country, errors="coerce")
+        df = df.loc[df[self.COUNTRY] == country_alias]
+        if df.empty:
+            raise SubsetNotFoundError(country=country, country_alias=country_alias) from None
+        df = df.loc[df[self.PROVINCE] != self.UNKNOWN]
+        return df.reset_index(drop=True)
+
     def _subset_by_area(self, country, province=None):
         """
         Return subset for the country/province.
 
         Args:
             country (str): country name
-            province (str or None): province name
+            province (str or None): province name or None (country level data)
 
         Returns:
-            pandas.DataFrame: subset for the country/province
+            pandas.DataFrame: subset for the country/province, columns are not changed
+
+        Raises:
+            SubsetNotFoundError: no records were found for the condition
         """
         # Country level
-        country = self.ensure_country_name(country)
-        df = self._ensure_dataframe(
-            self._cleaned_df, name="the cleaned dataset", columns=[self.COUNTRY])
-        df = df.loc[df[self.COUNTRY] == country, :]
+        if province is None or province == self.UNKNOWN:
+            df = self.layer(country=None)
+            country_alias = self.ensure_country_name(country)
+            df = df.loc[df[self.COUNTRY] == country_alias]
+            return df.reset_index(drop=True)
         # Province level
-        province = province or self.UNKNOWN
-        if self.PROVINCE not in df.columns and province == self.UNKNOWN:
-            return df
-        df = self._ensure_dataframe(
-            df, "the cleaned dataset", columns=[self.PROVINCE])
-        return df.loc[df[self.PROVINCE] == province, :]
+        df = self.layer(country=country)
+        df = df.loc[df[self.PROVINCE] == province]
+        if df.empty:
+            raise SubsetNotFoundError(country=country)
+        return df.reset_index(drop=True)
 
     def subset(self, country, province=None, start_date=None, end_date=None):
         """
-        Return subset of the country/province and start/end date.
+        Return subset with country/province name and start/end date.
 
         Args:
             country (str): country name or ISO3 code
@@ -234,19 +301,21 @@ class CleaningBase(Term):
                     reset index
                 Columns
                     without ISO3, Country, Province column
+
+        Raises:
+            SubsetNotFoundError: no records were found for the condition
         """
-        country_alias = self.ensure_country_name(country)
-        df = self._subset_by_area(country=country, province=province)
-        df = df.drop(
-            [self.COUNTRY, self.ISO3, self.PROVINCE], axis=1, errors="ignore")
-        if df.empty:
+        country_alias = self.ensure_country_name(country, errors="coerce")
+        try:
+            df = self._subset_by_area(country=country, province=province)
+        except SubsetNotFoundError:
             raise SubsetNotFoundError(
-                country=country, country_alias=country_alias, province=province)
+                country=country, country_alias=country_alias, province=province) from None
+        df = df.drop([self.COUNTRY, self.ISO3, self.PROVINCE], axis=1, errors="ignore")
         # Subset with Start/end date
         if start_date is None and end_date is None:
             return df.reset_index(drop=True)
-        df = self._ensure_dataframe(
-            df, name="the cleaned dataset", columns=[self.DATE])
+        df = self._ensure_dataframe(df, name="the cleaned dataset", columns=[self.DATE])
         series = df[self.DATE].copy()
         start_obj = self.date_obj(date_str=start_date, default=series.min())
         end_obj = self.date_obj(date_str=end_date, default=series.max())
@@ -254,7 +323,7 @@ class CleaningBase(Term):
         if df.empty:
             raise SubsetNotFoundError(
                 country=country, country_alias=country_alias, province=province,
-                start_date=start_date, end_date=end_date)
+                start_date=start_date, end_date=end_date) from None
         return df.reset_index(drop=True)
 
     def subset_complement(self, country, **kwargs):
@@ -324,46 +393,20 @@ class CleaningBase(Term):
         """
         raise NotImplementedError
 
-    def _colored_map(self, series, index_name, usa, title, filename, **kwargs):
+    def _colored_map(self, title, **kwargs):
         """
         Create global colored map to show the values.
 
         Args:
-            series (pandas.Series): data to show
-                Index
-                    ISO3 codes, country names or province names
-                Values
-                    - (int or float): values to color the map
-            index_name (str): index name, 'ISO3', 'Country' or 'Province'
-            usa (bool): if True, not show islands of USA when @index_name is 'Province'
             title (str): title of the figure
-            filename (str or None): image filename or None (display)
-            kwargs: arguments of matplotlib.pyplot.savefig() and geopandas.GeoDataFrame.plot() except for 'column'
+            kwargs: arguments of ColoredMap() and ColoredMap.plot()
         """
-        # Arguments for saving image
-        savefig_kwargs = find_args(plt.savefig, **kwargs)
-        # Create map
-        with ColoredMap(filename=filename, **savefig_kwargs) as cm:
-            # Title
+        with ColoredMap(**find_args([plt.savefig, ColoredMap], **kwargs)) as cm:
             cm.title = title
-            # Colorbar
-            divider = make_axes_locatable(cm.ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            # Arguments of plotting with GeoPandas
-            plot_kwargs = {
-                "legend": True,
-                "cmap": "coolwarm",
-                "ax": cm.ax,
-                "cax": cax,
-                "legend_kwds": {"label": "in log10 scale"}
-            }
-            plot_kwargs.update(find_args(gpd.GeoDataFrame.plot, **kwargs))
-            # Plotting
-            series = np.log10(series + 1)
-            cm.plot(
-                series=series, index_name=index_name, usa=usa, **plot_kwargs)
+            cm.directory = self._dirpath
+            cm.plot(**find_args([gpd.GeoDataFrame.plot, ColoredMap.plot], **kwargs))
 
-    def _colored_map_global(self, variable, title, date, included, excluded, filename, **kwargs):
+    def _colored_map_global(self, variable, title, date, **kwargs):
         """
         Create global colored map to show the values at country level.
 
@@ -371,42 +414,29 @@ class CleaningBase(Term):
             variable (str): variable name to show
             title (str): title of the figure
             date (str or None): date of the records or None (the last value)
-            included (list[str] or None): included countries or None (all-included)
-            excluded (list[str] or None): excluded countries or None (no-excluded)
-            filename (str or None): image filename or None (display)
-            kwargs: arguments of matplotlib.pyplot.savefig() and geopandas.GeoDataFrame.plot() except for 'column'
+            kwargs: arguments of ColoredMap() and ColoredMap.plot()
         """
         df = self._cleaned_df.copy()
         # Check variable name
         if variable not in df.columns:
-            candidates = [
-                col for col in df.columns if col not in self.AREA_ABBR_COLS]
-            raise UnExpectedValueError(
-                name="variable", value=variable, candidates=candidates)
-        # Create ISO3 codes, if necessary
-        if self.ISO3 not in df.columns:
-            self._ensure_dataframe(
-                df, name="cleaned dataset", columns=[self.COUNTRY])
-            df[self.ISO3] = df[self.COUNTRY].apply(
-                lambda x: coco.convert(x, to="ISO3", not_found=None))
-            df.dropna(inplace=True)
+            candidates = [col for col in df.columns if col not in self.AREA_ABBR_COLS]
+            raise UnExpectedValueError(name="variable", value=variable, candidates=candidates)
+        # Remove cruise ships
+        df = df.loc[df[self.COUNTRY] != self.OTHERS]
         # Select country level data
-        df = df.loc[df[self.PROVINCE] == self.UNKNOWN]
-        # Included/excluded countries
-        sel = set(included or df[self.COUNTRY].unique()) - set(excluded or [])
-        df = df.loc[df[self.COUNTRY].isin(sel)]
+        if self.PROVINCE in df.columns:
+            df = df.loc[df[self.PROVINCE] == self.UNKNOWN]
         # Select date
         if date is not None:
-            self._ensure_dataframe(
-                df, name="cleaned dataset", columns=[self.DATE])
+            self._ensure_dataframe(df, name="cleaned dataset", columns=[self.DATE])
             df = df.loc[df[self.DATE] == pd.to_datetime(date)]
-        df = df.groupby(self.ISO3).last()
+        df[self.COUNTRY] = df[self.COUNTRY].astype(str)
+        df = df.groupby(self.COUNTRY).last().reset_index()
         # Plotting
-        self._colored_map(
-            series=df[variable], index_name=self.ISO3, usa=False,
-            title=title, filename=filename, **kwargs)
+        df.rename(columns={variable: "Value"}, inplace=True)
+        self._colored_map(title=title, data=df, level=self.COUNTRY, **kwargs)
 
-    def _colored_map_country(self, country, variable, title, date, included, excluded, filename, **kwargs):
+    def _colored_map_country(self, country, variable, title, date, **kwargs):
         """
         Create country-specific colored map to show the values at province level.
 
@@ -415,38 +445,27 @@ class CleaningBase(Term):
             variable (str): variable name to show
             title (str): title of the figure
             date (str or None): date of the records or None (the last value)
-            included (list[str] or None): included countries or None (all-included)
-            excluded (list[str] or None): excluded countries or None (no-excluded)
-            filename (str or None): image filename or None (display)
-            kwargs: arguments of matplotlib.pyplot.savefig() and geopandas.GeoDataFrame.plot() except for 'column'
+            kwargs: arguments of covsirphy.ColoredMap() and covsirphy.ColoredMap.plot()
         """
         df = self._cleaned_df.copy()
         country_alias = self.ensure_country_name(country)
         # Check variable name
         if variable not in df.columns:
-            candidates = [
-                col for col in df.columns if col not in self.AREA_ABBR_COLS]
-            raise UnExpectedValueError(
-                name="variable", value=variable, candidates=candidates)
+            candidates = [col for col in df.columns if col not in self.AREA_ABBR_COLS]
+            raise UnExpectedValueError(name="variable", value=variable, candidates=candidates)
         # Select country-specific data
-        self._ensure_dataframe(
-            df, name="cleaned dataset", columns=[self.COUNTRY, self.PROVINCE])
+        self._ensure_dataframe(df, name="cleaned dataset", columns=[self.COUNTRY, self.PROVINCE])
         df = df.loc[df[self.COUNTRY] == country_alias]
         df = df.loc[df[self.PROVINCE] != self.UNKNOWN]
         if df.empty:
             raise SubsetNotFoundError(
                 country=country, country_alias=country_alias, message="at province level")
-        # Included/excluded provinces
-        sel = set(included or df[self.PROVINCE].unique()) - set(excluded or [])
-        df = df.loc[df[self.PROVINCE].isin(sel)]
         # Select date
         if date is not None:
-            self._ensure_dataframe(
-                df, name="cleaned dataset", columns=[self.DATE])
+            self._ensure_dataframe(df, name="cleaned dataset", columns=[self.DATE])
             df = df.loc[df[self.DATE] == pd.to_datetime(date)]
-        df = df.groupby(self.PROVINCE).last()
+        df = df.groupby(self.PROVINCE).last().reset_index()
         # Plotting
-        self._colored_map(
-            series=df[variable], index_name=self.PROVINCE,
-            usa=(country_alias == "United States"),
-            title=title, filename=filename, **kwargs)
+        df[self.COUNTRY] = country_alias
+        df.rename(columns={variable: "Value"}, inplace=True)
+        self._colored_map(title=title, data=df, level=self.PROVINCE, **kwargs)

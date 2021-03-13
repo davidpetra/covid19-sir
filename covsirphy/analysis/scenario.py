@@ -5,41 +5,67 @@ import copy
 from datetime import timedelta
 from math import log10, floor
 import warnings
+import sys
 import numpy as np
 import pandas as pd
-import ruptures as rpt
 from sklearn.model_selection import train_test_split
 from sklearn import linear_model
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.metrics import r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
 from covsirphy.util.error import deprecate, ScenarioNotFoundError, UnExecutedError
-from covsirphy.util.plotting import line_plot, box_plot
-from covsirphy.cleaning.oxcgrt import OxCGRTData
+from covsirphy.util.error import NotRegisteredMainError, NotRegisteredExtraError
+from covsirphy.util.error import NotInteractiveError
+from covsirphy.util.term import Term
+from covsirphy.visualization.line_plot import line_plot
+from covsirphy.visualization.bar_plot import bar_plot
+from covsirphy.cleaning.jhu_data import JHUData
 from covsirphy.analysis.param_tracker import ParamTracker
 from covsirphy.analysis.data_handler import DataHandler
 
 
-class Scenario(DataHandler):
+class Scenario(Term):
     """
     Scenario analysis.
 
     Args:
-        jhu_data (covsirphy.JHUData): object of records
-        population_data (covsirphy.PopulationData): PopulationData object
-        country (str): country name
+        jhu_data (covsirphy.JHUData or None): object of records
+        population_data (covsirphy.PopulationData or None): PopulationData object
+        country (str): country name (must not be None)
         province (str or None): province name
         tau (int or None): tau value
         auto_complement (bool): if True and necessary, the number of cases will be complemented
+
+    Note:
+        @jhu_data and @population_data must be registered with Scenario.register() if not specified here.
     """
 
-    def __init__(self, jhu_data, population_data, country, province=None, tau=None, auto_complement=True):
-        super().__init__(
-            jhu_data, population_data, country, province=province, auto_complement=auto_complement)
+    def __init__(self, jhu_data=None, population_data=None,
+                 country=None, province=None, tau=None, auto_complement=True):
+        # Area name
+        if country is None:
+            raise ValueError("@country must be specified.")
+        self.country = str(country)
+        self.province = str(province or self.UNKNOWN)
+        self.area = JHUData.area_name(country, province)
+        # Initialize data handler
+        self._data = DataHandler(country=self.country, province=self.province)
+        self._data.switch_complement(whether=auto_complement)
+        # Tau value
         self.tau = self._ensure_tau(tau)
-        self._update_range(first_date=None, last_date=None)
-        # Linear regression modes for prediction of ODE parameters
-        self._oxcgrt_data = None
+        # Register datasets
+        self._tracker_dict = {}
+        self.register(jhu_data=jhu_data, population_data=population_data, extras=None)
+        # Initialize parameter tracker
+        try:
+            self._init_trackers()
+        except NotRegisteredMainError:
+            pass
+        # Interactive (True) / script (False) mode
+        self._interactive = hasattr(sys, "ps1")
+        # Prediction of parameter values in the future phases: {name: (regression model, X_target)}
         self._lm_dict = {}
-        # Default delay days
-        self.delay_days = self.jhu_data.recovery_period
 
     def __getitem__(self, key):
         """
@@ -67,65 +93,246 @@ class Scenario(DataHandler):
             value (covsirphy.PhaseSeries): phase series object
         """
         self._tracker_dict[key] = ParamTracker(
-            self.record_df, value, area=self.area, tau=self.tau)
+            self._data.records(extras=False), value, area=self.area, tau=self.tau)
 
     @property
     def first_date(self):
         """
         str: the first date of the records
         """
-        return self._first_date
+        return self._data.first_date
 
     @first_date.setter
     def first_date(self, date):
-        self._update_range(first_date=date)
+        self._data.timepoints(
+            first_date=date, last_date=self._data.last_date, today=self._data.today)
 
     @property
     def last_date(self):
         """
         str: the last date of the records
         """
-        return self._last_date
+        return self._data.last_date
 
     @last_date.setter
     def last_date(self, date):
-        self._update_range(last_date=date)
+        try:
+            self._ensure_date_order(self._data.today, date)
+        except ValueError:
+            today = date
+        else:
+            today = self._data.today
+        self.timepoints(
+            first_date=self._data.first_date, last_date=date, today=today)
 
-    def _update_range(self, first_date=None, last_date=None):
+    @property
+    def today(self):
         """
-        Set first/last dates of the records.
-        Records to analyse will be updated and all scenarios will be cleared.
+        str: reference date to determine whether a phase is a past phase or a future phase
+        """
+        return self._data.today
+
+    @today.setter
+    def today(self, date):
+        self.timepoints(
+            first_date=self._data.first_date, last_date=self._data.last_date, today=date)
+
+    @property
+    def interactive(self):
+        """
+        bool: interactive mode (display figures) or not
+
+        Note:
+            When running scripts, interactive mode cannot be selected.
+        """
+        return self._interactive
+
+    @interactive.setter
+    def interactive(self, is_interactive):
+        if not hasattr(sys, "ps1") and is_interactive:
+            raise NotInteractiveError
+        self._interactive = hasattr(sys, "ps1") and bool(is_interactive)
+
+    def register(self, jhu_data=None, population_data=None, extras=None):
+        """
+        Register datasets.
 
         Args:
-            first_date (str or None): the first date of the records
-            last_date (str or None): the last date of the records
+            jhu_data (covsirphy.JHUData or None): object of records
+            population_data (covsirphy.PopulationData or None): PopulationData object
+            extras (list[covsirphy.CleaningBase] or None): extra datasets
+
+        Raises:
+            TypeError: non-data cleaning instance was included
+            UnExpectedValueError: instance of un-expected data cleaning class was included as an extra dataset
         """
-        if first_date is not None:
-            self._first_date = self.__ensure_date_in_range(first_date)
-        if last_date is not None:
-            self._last_date = self.__ensure_date_in_range(last_date)
-        super().init_records()
+        self._data.register(jhu_data=jhu_data, population_data=population_data, extras=extras)
+        if self._data.main_satisfied and not self._tracker_dict:
+            self.timepoints()
+
+    def timepoints(self, first_date=None, last_date=None, today=None):
+        """
+        Set the range of data and reference date to determine past/future of phases.
+
+        Args:
+            first_date (str or None): the first date of the records or None (min date of main dataset)
+            last_date (str or None): the first date of the records or None (max date of main dataset)
+            today (str or None): reference date to determine whether a phase is a past phase or a future phase
+
+        Raises:
+            NotRegisteredMainError: either JHUData or PopulationData was not registered
+            SubsetNotFoundError: failed in subsetting because of lack of data
+
+        Note:
+            When @today is None, the reference date will be the same as @last_date (or max date).
+        """
+        self._data.timepoints(first_date=first_date, last_date=last_date, today=today)
         self._init_trackers()
 
-    def __ensure_date_in_range(self, date):
+    def line_plot(self, df, show_figure=True, filename=None, **kwargs):
         """
-        Ensure that the date is in the range of (the first date, the last date).
+        Display or save a line plot of the dataframe.
 
         Args:
-            date (str): date, like 01Jan2020
+            show_figure (bool): whether show figure when interactive mode or not
+            filename (str or None): filename of the figure or None (not save) when script mode
+
+        Note:
+            When interactive mode and @show_figure is True, display the figure.
+            When script mode and filename is not None, save the figure.
+            When using interactive shell, we can change the modes by Scenario.interactive = True/False.
         """
-        self._ensure_date_order(self._first_date, date, name="date")
-        self._ensure_date_order(date, self._last_date, name="date")
-        return date
+        if self._interactive and show_figure:
+            return line_plot(df=df, filename=None, **kwargs)
+        if not self._interactive and filename is not None:
+            return line_plot(df=df, filename=filename, **kwargs)
+
+    def complement(self, **kwargs):
+        """
+        Complement the number of recovered cases, if necessary.
+
+        Args:
+            kwargs: the other arguments of JHUData.subset_complement()
+
+        Returns:
+            covsirphy.Scenario: self
+        """
+        self._data.switch_complement(whether=True, **kwargs)
+        return self
+
+    def complement_reverse(self):
+        """
+        Restore the raw records. Reverse method of covsirphy.Scenario.complement().
+
+        Returns:
+            covsirphy.Scenario: self
+        """
+        self._data.switch_complement(whether=False)
+        return self
+
+    def show_complement(self, **kwargs):
+        """
+        Show the details of complement that was (or will be) performed for the records.
+
+        Args:
+            kwargs: keyword arguments of JHUDataComplementHandler() i.e. control factors of complement
+
+        Returns:
+            pandas.DataFrame: as the same as JHUData.show_complement()
+        """
+        self._data.switch_complement(whether=None, **kwargs)
+        return self._data.show_complement()
+
+    def records(self, variables=None, **kwargs):
+        """
+        Return the records as a dataframe.
+
+        Args:
+            variables (list[str] or str or None): list of variables, 'all', None (Infected/Fatal/Recovered)
+            kwargs: the other keyword arguments of Scenario.line_plot()
+
+        Raises:
+            NotRegisteredMainError: either JHUData or PopulationData was not registered
+            SubsetNotFoundError: failed in subsetting because of lack of data
+            NotRegisteredExtraError: some variables are not included in the main datasets
+            and no extra datasets were registered
+
+        Returns:
+            pandas.DataFrame
+
+                Index
+                    reset index
+                Columns
+                    - Date (pd.TimeStamp): Observation date
+                    - Columns set by @variables (int)
+
+        Note:
+            - Records with Recovered > 0 will be selected.
+            - If complement was performed by Scenario.complement() or Scenario(auto_complement=True),
+            The kind of complement will be added to the title of the figure.
+            - @variables can be selected from Susceptible/Confirmed/Infected/Fatal/Recovered.
+        """
+        # Get necessary data for the variables
+        all_df = self._data.records_all()
+        if variables is None:
+            df = all_df.loc[:, [self.DATE, self.CI, self.F, self.R]]
+        elif variables == "all":
+            df = all_df.copy()
+        else:
+            self._ensure_list(variables, candidates=all_df.columns.tolist(), name="variables")
+            df = all_df.loc[:, [self.DATE, *variables]]
+        # Figure
+        if self._data.complemented:
+            title = f"{self.area}: Cases over time\nwith {self._data.complemented}"
+        else:
+            title = f"{self.area}: Cases over time"
+        self.line_plot(
+            df=df.set_index(self.DATE), title=title, y_integer=True, **kwargs)
+        return df
+
+    def records_diff(self, variables=None, window=7, **kwargs):
+        """
+        Return the number of daily new cases (the first discreate difference of records).
+
+        Args:
+            variables (list[str] or str or None): list of variables, 'all', None (Infected/Fatal/Recovered)
+            window (int): window of moving average, >= 1
+            kwargs: the other keyword arguments of Scenario.line_plot()
+
+        Returns:
+            pandas.DataFrame
+                Index
+                    - Date (pd.TimeStamp): Observation date
+                Columns
+                    - Confirmed (int): daily new cases of Confirmed, if calculated
+                    - Infected (int):  daily new cases of Infected, if calculated
+                    - Fatal (int):  daily new cases of Fatal, if calculated
+                    - Recovered (int):  daily new cases of Recovered, if calculated
+
+        Note:
+            @variables will be selected from Confirmed, Infected, Fatal and Recovered.
+            If None was set as @variables, ["Confirmed", "Fatal", "Recovered"] will be used.
+        """
+        window = self._ensure_natural_int(window, name="window")
+        df = self.records(variables=variables, show_figure=False).set_index(self.DATE)
+        df = df.diff().dropna()
+        df = df.rolling(window=window).mean().dropna().astype(np.int64)
+        if self._data.complemented:
+            title = f"{self.area}: Daily new cases\nwith {self._data.complemented}"
+        else:
+            title = f"{self.area}: Daily new cases"
+        self.line_plot(df=df, title=title, y_integer=True, **kwargs)
+        return df
 
     def _init_trackers(self):
         """
         Initialize dictionary of trackers.
         """
+        data = copy.deepcopy(self._data)
         series = ParamTracker.create_series(
-            first_date=self._first_date, last_date=self._last_date, population=self.population)
+            first_date=data.first_date, last_date=data.last_date, population=data.population)
         tracker = ParamTracker(
-            record_df=self.record_df, phase_series=series, area=self.area, tau=self.tau)
+            record_df=self._data.records(extras=False), phase_series=series, area=self.area, tau=self.tau)
         self._tracker_dict = {self.MAIN: tracker}
 
     def _tracker(self, name, template="Main"):
@@ -154,8 +361,7 @@ class Scenario(DataHandler):
     def add_phase(self, **kwargs):
         return self.add(**kwargs)
 
-    def add(self, name="Main", end_date=None, days=None,
-            population=None, model=None, **kwargs):
+    def add(self, name="Main", end_date=None, days=None, population=None, model=None, **kwargs):
         """
         Add a new phase.
         The start date will be the next date of the last registered phase.
@@ -186,8 +392,7 @@ class Scenario(DataHandler):
         tracker = self._tracker(name)
         try:
             tracker.add(
-                end_date=end_date, days=days, population=population,
-                model=model, **kwargs)
+                end_date=end_date, days=days, population=population, model=model, **kwargs)
         except ValueError:
             last_date = tracker.series.unit("last").end_date
             raise ValueError(
@@ -394,7 +599,7 @@ class Scenario(DataHandler):
             name (str): phase series name
             show_figure (bool): if True, show the result as a figure
             filename (str): filename of the figure, or None (display)
-            kwargs: keyword arguments of covsirphy.ChangeFinder() and covsirphy.line_plot_multiple()
+            kwargs: keyword arguments of covsirphy.ChangeFinder() and covsirphy.trend_plot()
 
         Returns:
             covsirphy.Scenario: self
@@ -403,8 +608,7 @@ class Scenario(DataHandler):
         if "n_points" in kwargs.keys():
             raise ValueError(
                 "@n_points argument is un-necessary"
-                " because the number of change points will be automatically determined."
-            )
+                " because the number of change points will be automatically determined.")
         try:
             include_init_phase = kwargs.pop("include_init_phase")
             warnings.warn(
@@ -465,8 +669,7 @@ class Scenario(DataHandler):
         """
         estimator = self._tracker_dict[name].series.unit(phase).estimator
         if estimator is None:
-            raise UnExecutedError(
-                f'Scenario.estimate(model, phases=["{phase}"], name={name})')
+            raise UnExecutedError(f'Scenario.estimate(model, phases=["{phase}"], name={name})')
         return estimator
 
     def estimate_history(self, phase, name="Main", **kwargs):
@@ -536,8 +739,7 @@ class Scenario(DataHandler):
         fig_cols = self._ensure_list(
             variables or [self.CI, self.F, self.R], candidates=df.columns.tolist(), name="variables")
         title = f"{self.area}: Simulated number of cases ({name} scenario)"
-        self.line_plot(
-            df=df[fig_cols], title=title, y_integer=True, v=tracker.change_dates(), **kwargs)
+        self.line_plot(df=df[fig_cols], title=title, y_integer=True, v=tracker.change_dates(), **kwargs)
         return sim_df
 
     def get(self, param, phase="last", name="Main"):
@@ -634,17 +836,9 @@ class Scenario(DataHandler):
             return df
         if show_box_plot:
             h_values = [1.0] if divide_by_first or self.RT in targets else None
-            box_plot(df, title, h=h_values, filename=filename)
+            bar_plot(df, title=title, h=h_values, filename=filename, ylabel=None)
             return df
-        _df = df.reset_index(drop=True)
-        _df.index = _df.index + 1
-        h = 1.0 if divide_by_first else None
-        line_plot(
-            _df, title=title,
-            xlabel="Phase", ylabel=str(), math_scale=False, h=h,
-            filename=filename
-        )
-        return df
+        return self.history_rate(params=targets, name=name, **kwargs)
 
     def _describe(self, y0_dict=None):
         """
@@ -720,8 +914,7 @@ class Scenario(DataHandler):
             return df
         # History of reproduction number
         rt_df = self.summary().reset_index()
-        rt_df = rt_df.pivot_table(
-            index=self.SERIES, columns=self.PHASE, values=self.RT)
+        rt_df = rt_df.pivot_table(index=self.SERIES, columns=self.PHASE, values=self.RT)
         rt_df = rt_df.fillna(self.UNKNOWN)
         rt_df = rt_df.loc[:, rt_df.nunique() > 1]
         cols = sorted(rt_df, key=self.str2num)
@@ -782,13 +975,10 @@ class Scenario(DataHandler):
                     - parameter values (float)
                     - day parameter values (float)
         """
-        sim_df = self.simulate(
-            phases=phases, name=name, y0_dict=y0_dict, show_figure=False)
+        sim_df = self.simulate(phases=phases, name=name, y0_dict=y0_dict, show_figure=False)
         param_df = self._track_param(name=name)
         return pd.merge(
-            sim_df, param_df, how="inner",
-            left_on=self.DATE, right_index=True, sort=True
-        )
+            sim_df, param_df, how="inner", left_on=self.DATE, right_index=True, sort=True)
 
     def track(self, phases=None, with_actual=True, y0_dict=None):
         """
@@ -821,7 +1011,7 @@ class Scenario(DataHandler):
             df.insert(0, self.SERIES, name)
             append(df)
         if with_actual:
-            df = self.record_df.copy()
+            df = self._data.records(extras=False)
             df.insert(0, self.SERIES, self.ACTUAL)
             append(df)
         return pd.concat(dataframes, axis=0, sort=False)
@@ -844,12 +1034,10 @@ class Scenario(DataHandler):
         # Include actual data or not
         with_actual = with_actual and target in self.VALUE_COLUMNS
         # Get tracking data
-        df = self.track(
-            phases=phases, with_actual=with_actual, y0_dict=y0_dict)
+        df = self.track(phases=phases, with_actual=with_actual, y0_dict=y0_dict)
         if target not in df.columns:
             col_str = ", ".join(list(df.columns))
-            raise KeyError(
-                f"@target must be selected from {col_str}, but {target} was applied.")
+            raise KeyError(f"@target must be selected from {col_str}, but {target} was applied.")
         # Select the records of target variable
         return df.pivot_table(
             values=target, index=self.DATE, columns=self.SERIES, aggfunc="last")
@@ -870,9 +1058,8 @@ class Scenario(DataHandler):
         Returns:
             pandas.DataFrame
         """
-        df = self._history(
-            target=target, phases=phases, with_actual=with_actual, y0_dict=y0_dict)
-        df = df.dropna()
+        df = self._history(target=target, phases=phases, with_actual=with_actual, y0_dict=y0_dict)
+        df.dropna(subset=[col for col in df.columns if col != self.ACTUAL], inplace=True)
         if target == self.RT:
             ylabel = self.RT_FULL
         elif target in self.VALUE_COLUMNS:
@@ -904,8 +1091,7 @@ class Scenario(DataHandler):
         cols = list(set(df.columns) & set(model.PARAMETERS))
         if params is not None:
             if not isinstance(params, (list, set)):
-                raise TypeError(
-                    f"@params must be a list of parameters, but {params} were applied.")
+                raise TypeError(f"@params must be a list of parameters, but {params} were applied.")
             cols = list(set(cols) & set(params)) or cols
         df = df.loc[:, cols] / df.loc[df.index[0], cols]
         # Show figure
@@ -935,8 +1121,7 @@ class Scenario(DataHandler):
             When parameter values are not specified,
             actual values of the last date before the beginning date will be used.
         """
-        param_dict = {
-            k: v for (k, v) in kwargs.items() if k in model.PARAMETERS}
+        param_dict = {k: v for (k, v) in kwargs.items() if k in model.PARAMETERS}
         est_kwargs = dict(kwargs.items() - param_dict.items())
         # Control
         self.clear(name=control, include_past=True)
@@ -950,8 +1135,7 @@ class Scenario(DataHandler):
         self.clear(name=target, include_past=False, template=control)
         phases_changed = [
             self.num2str(i) for (i, ph) in enumerate(self._tracker(target).series)
-            if ph >= beginning_date
-        ]
+            if ph >= beginning_date]
         self.delete(phases=phases_changed, name=target)
         self.add(name=target, **param_dict)
         self.estimate(model, name=target, **est_kwargs)
@@ -984,8 +1168,7 @@ class Scenario(DataHandler):
                     "@phases and @past_days cannot be specified at the same time.")
             past_days = self._ensure_natural_int(past_days, name="past_days")
             # Separate a phase, if possible
-            beginning_date = self.date_change(
-                self._last_date, days=0 - past_days)
+            beginning_date = self.date_change(self._data.last_date, days=0 - past_days)
             try:
                 tracker.separate(date=beginning_date)
             except ValueError:
@@ -999,92 +1182,64 @@ class Scenario(DataHandler):
         return tracker.score(
             metrics=metrics, variables=variables, phases=phases, y0_dict=y0_dict)
 
-    def estimate_delay(self, oxcgrt_data, indicator="Stringency_index",
-                       target="Infected", value_range=(7, 35)):
+    def estimate_delay(self, oxcgrt_data=None, indicator="Stringency_index",
+                       target="Confirmed", value_range=(7, None)):
         """
-        Estimate the average delay (in days) between a policy measure taken
-        and the moment of change in for the given target value, for example
-        `Infected`.The change over time is calculated with penalized change
-        point analysis. More information about the method of change point
-        detection can be found on:
-        https://ctruong.perso.math.cnrs.fr/ruptures-docs/build/html/detection/pelt.html.
+        Estimate the average day [days] between the indicator and the target.
+        We assume that the indicator impact on the target value with delay.
 
         Args:
             oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
-            indicator (str): column variable from the OxCGRT dataset
-            target (str): one of the target columns to detect changes in,
-                options are ["Infected", "Confirmed", "Fatal", "Recovered"].
-            value_range (int, int): tuple, giving the minimum and maximum
-            range to search for change over time. It is assumed that when a
-            policy measure is taken, change will occur after at least 7 days
-            and before 35 days (=default).
+            indicator (str): indicator name, a column of any registered datasets
+            target (str): target name, a column of any registered datasets
+            value_range (tuple(int, int or None)): tuple, giving the minimum and maximum range to search for change over time
+
+        Raises:
+            NotRegisteredMainError: either JHUData or PopulationData was not registered
+            SubsetNotFoundError: failed in subsetting because of lack of data
+            UserWarning: failed in calculating and returned the default value (recovery period)
 
         Returns:
             tuple(int, pandas.DataFrame):
-                - int: the estimated number of days of delay for a given country.
-                - pandas.DataFrame: dataframe of target, indicator and calculated periods of change (in days).
+                - int: the estimated number of days of delay [day]
+                - pandas.DataFrame:
+                    Index
+                        reset index
+                    Columns
+                        - (int or float): column defined by @indicator
+                        - (int or float): column defined by @target
+                        - (int): column defined by @delay_name [days]
 
         Note:
-            Average recovered period of JHU dataset will be used as returned value
-            when the estimated value was not in value_range.
-            Very long periods (outside of 99% quantile) are taken out.
+            - Average recovered period of JHU dataset will be used as returned value when the estimated value was not in value_range.
+            - Very long periods (outside of 99% quantile) are taken out.
+            - @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
         """
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        records = self.record_df.set_index(self.DATE)
-        default_df = pd.DataFrame()
-        oxcgrt_df = oxcgrt_data.subset(
-            country=self.country).set_index(self.DATE)
-        records[indicator] = oxcgrt_df.loc[:, indicator]
-        records = records.reset_index()
-        df = records.pivot_table(index=target, values=indicator)
-        df_run = df.copy()
-        # Convert index to serial numbers
-        serial_df = pd.DataFrame(np.arange(1, df_run.index.max() + 1, 1))
-        serial_df.index += 1
-        df_run = df_run.join(serial_df, how="outer")
-        series = df_run.reset_index(drop=True).iloc[:, 0].dropna()
-        # Convert index values to Susceptible values
-        reset_series = series.reset_index(drop=True)
-        reset_series.index += 1
-        # Detection with Ruptures
-        algorithm = rpt.Pelt(model="rbf", jump=1, min_size=value_range[0])
-        try:
-            results = algorithm.fit_predict(series.values, pen=0.5)
-        except ValueError:
+        # Register OxCGRT data
+        if oxcgrt_data is not None:
             warnings.warn(
-                "Delay days could not be estimated for {self.country} and delay set to default: {self.delay_days} [days]",
-                UserWarning, stacklevel=1
-            )
-            return self.jhu_data.recovery_period, default_df
-        results_df = reset_series[results].reset_index()
-        results_df = results_df.interpolate(
-            method="linear").dropna().astype(np.float64)
-        # Convert new_confirmed values to dates
-        df = pd.merge_asof(
-            results_df.sort_values(indicator),
-            df.astype(np.float64).reset_index().sort_values(indicator),
-            on=indicator, direction="nearest"
-        )
-        # Calculate number of days between the periods
-        df["Period Length"] = df["index"].sort_values(ignore_index=True).diff()
+                "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
+                DeprecationWarning, stacklevel=1)
+            self.register(extras=[oxcgrt_data])
+        # Calculate delay values
+        df = self._data.estimate_delay(indicator=indicator, target=target, delay_name="Period Length")
         # Filter out very long periods
-        sel1 = df["Period Length"] < df["Period Length"].quantile(0.99)
-        sel2 = (df["Period Length"] < value_range[1])
-        df_filtered = df.loc[sel1 & sel2]
-        delay_days = self.delay_days if df_filtered.empty else int(
-            df_filtered["Period Length"].mean())
-        return delay_days, df[[target, indicator, "Period Length"]]
+        df_filtered = df.loc[df["Period Length"] < df["Period Length"].quantile(0.99)]
+        if value_range[1] is not None:
+            df_filtered = df_filtered.loc[df["Period Length"] < value_range[1]]
+        delay_days = self._data.recovery_period() if df_filtered.empty else int(df_filtered["Period Length"].mean())
+        return (delay_days, df)
 
-    def _fit_create_data(self, oxcgrt_data, model, name, delay):
+    def _fit_create_data(self, model, name, delay, removed_cols):
         """
         Create train/test dataset for Elastic Net regression,
-        assuming that OxCGRT scores will impact on ODE parameter values with delay (recovery period).
+        assuming that extra variables will impact on ODE parameter values with delay.
 
         Args:
-            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
             model (covsirphy.ModelBase): ODE model
             name (str): scenario name
-            delay (int): number of days of delay between policy measure and effect on number of confirmed cases
+            delay (int): delay period
+            removed_cols (list): list of variables to remove from X dataset
 
         Returns:
             tuple(pandas.DataFrame):
@@ -1092,31 +1247,33 @@ class Scenario(DataHandler):
                 - y dataset for linear regression
                 - X dataset of the target dates
         """
+        # Clear the future phases
+        self.clear(name=name, include_past=False)
         # Parameter values
         param_df = self._track_param(name=name)[model.PARAMETERS]
-        # OxCGRT scores
-        oxcgrt_df = oxcgrt_data.subset(
-            country=self.country).set_index(self.DATE)[OxCGRTData.OXCGRT_VARS_INDICATORS]
+        # Extra datasets (explanatory variables)
+        extras_df = self._data.records(main=False, extras=True).set_index(self.DATE)
+        extras_df = extras_df.loc[:, ~extras_df.columns.isin(removed_cols)]
         # Apply delay on OxCGRT data
-        oxcgrt_df.index += timedelta(days=delay)
+        extras_df.index += timedelta(days=delay)
         # Create training/test dataset
-        df = param_df.join(oxcgrt_df, how="inner")
-        df = df.rolling(window=delay).mean()
-        df = df.dropna().drop_duplicates()
+        df = param_df.join(extras_df, how="inner")
+        df = df.rolling(window=delay).mean().dropna().drop_duplicates()
         X = df.drop(model.PARAMETERS, axis=1)
         y = df.loc[:, model.PARAMETERS]
         # X dataset of the target dates
         dates = pd.date_range(
             start=param_df.index.max() + timedelta(days=1),
-            end=oxcgrt_df.index.max(),
+            end=extras_df.index.max(),
             freq="D")
-        X_target = oxcgrt_df.loc[dates]
+        X_target = extras_df.loc[dates]
         return (X, y, X_target)
 
-    def fit(self, oxcgrt_data, name="Main", test_size=0.2, seed=0, delay=None):
+    def fit(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None):
         """
         Learn the relationship of ODE parameter values and delayed OxCGRT scores using Elastic Net regression,
-        assuming that OxCGRT scores will impact on ODE parameter values with delay (=recovery period).
+        assuming that OxCGRT scores will impact on ODE parameter values with delay.
+        Min-max scaling and Elastic net regression with parameter optimization and cross validation.
 
         Args:
             oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
@@ -1126,22 +1283,37 @@ class Scenario(DataHandler):
             delay (int): number of days of delay between policy measure and effect
             on number of confirmed cases.
 
+        Raises:
+            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+
         Returns:
             dict(str, object):
+                - scaler (object): scaler class
+                - regressor (object): regressor class
                 - alpha (float): alpha value used in Elastic Net regression
                 - l1_ratio (float): l1_ratio value used in Elastic Net regression
                 - score_train (float): determination coefficient of train dataset
                 - score_test (float): determination coefficient of test dataset
-                - intercept (pandas.DataFrame): intercept values (Index ODE parameters, Columns OxCGRT indicators)
+                - X_train (numpy.array): X_train
+                - y_train (numpy.array): y_train
+                - X_test (numpy.array): X_test
+                - y_test (numpy.array): y_test
+                - X_target (numpy.array): X_target
+                - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
+                - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
                 - delay (int): number of days of delay between policy measure and effect
                   on number of confirmed cases.
 
-        Raises:
-            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+        Note:
+            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
         """
+        warnings.simplefilter("ignore", category=ConvergenceWarning)
         # Register OxCGRT data
-        self._oxcgrt_data = self._ensure_instance(
-            oxcgrt_data, OxCGRTData, name="oxcgrt_data")
+        if oxcgrt_data is not None:
+            warnings.warn(
+                "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
+                DeprecationWarning, stacklevel=1)
+            self.register(extras=[oxcgrt_data])
         # ODE model
         model = self._tracker(name).last_model
         if model is None:
@@ -1150,92 +1322,116 @@ class Scenario(DataHandler):
                 message=f", specifying @model (covsirphy.SIRF etc.) and @name='{name}'.")
         # Set delay effect
         if delay is None:
-            delay, _ = self.estimate_delay(oxcgrt_data)
-        self.delay_days = delay
+            delay, delay_df = self.estimate_delay(oxcgrt_data)
+            removed_cols = delay_df.columns.tolist()
+        else:
+            delay = self._ensure_natural_int(delay, name="delay")
+            removed_cols = []
         # Create training/test dataset
-        X, y, *_ = self._fit_create_data(
-            oxcgrt_data=oxcgrt_data, model=model, name=name, delay=delay)
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=seed)
-        # Optimize parameters of Elastic Net regression
+        try:
+            X, y, X_target = self._fit_create_data(
+                model=model, name=name, delay=delay, removed_cols=removed_cols)
+        except NotRegisteredExtraError:
+            raise NotRegisteredExtraError(
+                "Scenario.register(jhu_data, population_data, extras=[...])",
+                message="with extra datasets") from None
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
+        # Create pipeline for learning
         cv = linear_model.MultiTaskElasticNetCV(
             alphas=[0, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
             l1_ratio=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             cv=5, n_jobs=-1)
-        cv.fit(X_train, y_train)
-        info_dict = {"alpha": cv.alpha_, "l1_ratio": cv.l1_ratio_}
-        # Perform Elastic Net (Ridge & Lasso) regression
-        lm = linear_model.ElasticNet(**info_dict)
-        lm.fit(X_train, y_train)
-        # Register the regression model to self
-        self._lm_dict[name] = lm
+        steps = [
+            ("scaler", MinMaxScaler()),
+            ("regressor", cv),
+        ]
+        pipeline = Pipeline(steps=steps)
+        pipeline.fit(X_train, y_train)
+        # Register the pipeline and X-target for prediction
+        self._lm_dict[name] = (pipeline, X_target)
+        # Get train score
+        score_train = r2_score(pipeline.predict(X_train), y_train)
+        # Get test score
+        score_test = r2_score(pipeline.predict(X_test), y_test)
         # Return information regarding regression model
-        info_dict.update(
-            {
-                "score_train": lm.score(X_train, y_train),
-                "score_test": lm.score(X_test, y_test),
-                "intercept": pd.DataFrame(
-                    lm.coef_, index=y_train.columns, columns=X_train.columns),
-                "delay": delay
-            }
-        )
-        return info_dict
+        reg_output = pipeline.named_steps.regressor
+        # Intercept and coefficients
+        intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
+        intercept_df.insert(0, "Intercept", None)
+        intercept_df["Intercept"] = reg_output.intercept_
+        # Return information
+        return {
+            **{k: type(v) for (k, v) in steps},
+            "alpha": reg_output.alpha_,
+            "l1_ratio": reg_output.l1_ratio_,
+            "score_train": score_train,
+            "score_test": score_test,
+            "X_train": X_train,
+            "y_train": y_train,
+            "X_test": X_test,
+            "y_test": y_test,
+            "X_target": X_target,
+            "intercept": intercept_df,
+            "coef": intercept_df,
+            "delay": delay
+        }
 
     def predict(self, name="Main"):
         """
         Predict parameter values of the future phases using Elastic Net regression with OxCGRT scores,
-        assuming that OxCGRT scores will impact on ODE parameter values with delay (=recovery period).
+        assuming that OxCGRT scores will impact on ODE parameter values with delay.
         New future phases will be added (over-written).
 
         Args:
             name (str): scenario name
 
-        Returns:
-            covsirphy.Scenario: self
-
         Raises:
             covsirphy.UnExecutedError: Scenario.fit() was not performed
+            NotRegisteredExtraError: no extra datasets were registered
+
+        Returns:
+            covsirphy.Scenario: self
         """
         # Arguments
         if name not in self._lm_dict:
-            raise UnExecutedError(f"Scenario.fit(oxcgrt_data, name={name})")
+            raise UnExecutedError(f"Scenario.fit(name={name})")
         model = self._tracker(name).last_model
-        lm = self._lm_dict[name]
-        # Clear future phases
-        self.clear(name=name)
-        # Create X dataset of the target dates
-        *_, X_target = self._fit_create_data(
-            oxcgrt_data=self._oxcgrt_data, model=model, name=name, delay=self.delay_days)
+        # Prediction with regression model
+        pipeline, X_target = self._lm_dict[name]
+        predicted = pipeline.predict(X_target)
         # -> end_date/parameter values
-        df = pd.DataFrame(
-            lm.predict(X_target), index=X_target.index, columns=model.PARAMETERS)
-        df = df.applymap(
-            lambda x: np.around(x, 4 - int(floor(log10(abs(x)))) - 1))
-        df.index = [
-            date.strftime(self.DATE_FORMAT) for date in df.index]
+        df = pd.DataFrame(predicted, index=X_target.index, columns=model.PARAMETERS)
+        df = df.applymap(lambda x: np.around(x, 4 - int(floor(log10(abs(x)))) - 1))
+        df.index = [date.strftime(self.DATE_FORMAT) for date in df.index]
         df.index.name = "end_date"
         phase_df = df.drop_duplicates(keep="last").reset_index()
+        # Select the last values
+        phase_df = phase_df.iloc[[-1], :]
         # Set new future phases
         for phase_dict in phase_df.to_dict(orient="records"):
             self.add(name=name, **phase_dict)
         return self
 
-    def fit_predict(self, oxcgrt_data, name="Main", **kwargs):
+    def fit_predict(self, oxcgrt_data=None, name="Main", **kwargs):
         """
         Predict parameter values of the future phases using Elastic Net regression with OxCGRT scores,
-        assuming that OxCGRT scores will impact on ODE parameter values with delay (=recovery period).
+        assuming that OxCGRT scores will impact on ODE parameter values with delay.
         New future phases will be added (over-written).
 
         Args:
-            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
+            oxcgrt_data (covsirphy.OxCGRTData or None): OxCGRT dataset
             name (str): scenario name
             kwargs: the other arguments of Scenario.fit()
+
+        Raises:
+            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+            NotRegisteredExtraError: no extra datasets were registered
 
         Returns:
             covsirphy.Scenario: self
 
-        Raises:
-            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+        Note:
+            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
         """
         self.fit(oxcgrt_data=oxcgrt_data, name=name, **kwargs)
         self.predict(name=name)

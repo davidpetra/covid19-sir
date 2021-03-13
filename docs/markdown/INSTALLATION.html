@@ -36,8 +36,6 @@
         <script src="../_static/clipboard.min.js"></script>
         <script src="../_static/copybutton.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -69,7 +67,7 @@
             
             
               <div class="version">
-                2.15.0-mu
+                2.17.0-epsilon
               </div>
             
           
@@ -123,9 +121,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../usage_dataset.html">Usage: datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage_phases.html">Usage: phases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage_theoretical.html">Usage: SIR-derived models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage_policy.html">Usage: policy measures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../covsirphy.html">covsirphy package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="TERM.html">Term definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TERM.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CODE_OF_CONDUCT.html">Contributor Covenant Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../SECURITY.html">Security policy of CovsirPhy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Guideline of contribution</a></li>
@@ -222,17 +219,12 @@
 </style>
 <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>The latest stable version of CovsirPhy is available at <a class="reference external" href="https://pypi.org/project/covsirphy/">PyPI (The Python Package Index): covsirphy</a> and supports Python 3.6.9 or newer versions. It is recommended to use virtual environment.</p>
+<p>The latest stable version of CovsirPhy is available at <a class="reference external" href="https://pypi.org/project/covsirphy/">PyPI (The Python Package Index): covsirphy</a> and supports Python 3.7 or newer versions. It is recommended to use virtual environment.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install --upgrade covsirphy
 </pre></div>
 </div>
-<p>The latest development version can be install from <a class="reference external" href="https://github.com/lisphilar/covid19-sir">GitHub repository: CovsirPhy</a>. Please refer to <a class="reference external" href="https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html">Guideline of contribution</a>.</p>
+<p>You can find the latest development in <a class="reference external" href="https://github.com/lisphilar/covid19-sir">GitHub repository: CovsirPhy</a> and install it with <code class="docutils literal notranslate"><span class="pre">pip</span></code> command. Please refer to <a class="reference external" href="https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html">Guideline of contribution</a>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install --upgrade <span class="s2">&quot;git+https://github.com/lisphilar/covid19-sir.git#egg=covsirphy&quot;</span>
-</pre></div>
-</div>
-<p>Note:<br />When using <strong>development versions</strong> of CovsirPhy in Kaggle Notebook, please run the following codes to remove third-party <code class="docutils literal notranslate"><span class="pre">typing</span></code> package.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>!pip uninstall typing -y
-!pip install --upgrade <span class="s2">&quot;git+https://github.com/lisphilar/covid19-sir.git#egg=covsirphy&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -291,15 +283,16 @@
 </div>
 <div class="section" id="our-world-in-data">
 <h3><a class="reference external" href="https://github.com/owid/covid-19-data/tree/master/public/data">Our World In Data</a><a class="headerlink" href="#our-world-in-data" title="Permalink to this headline">¶</a></h3>
-<p>Citation: Hasell, J., Mathieu, E., Beltekian, D. et al. A cross-country database of COVID-19 testing. Sci Data 7, 345 (2020). <a class="reference external" href="https://doi.org/10.1038/s41597-020-00688-8">https://doi.org/10.1038/s41597-020-00688-8</a></p>
+<p>Hasell, J., Mathieu, E., Beltekian, D. et al. A cross-country database of COVID-19 testing. Sci Data 7, 345 (2020). <a class="reference external" href="https://doi.org/10.1038/s41597-020-00688-8">https://doi.org/10.1038/s41597-020-00688-8</a></p>
 <ul class="simple">
 <li><p>The number of tests</p></li>
 <li><p>The number of vaccinations</p></li>
+<li><p>The number of people who received vaccinations</p></li>
 </ul>
 </div>
 <div class="section" id="world-bank-open-data">
 <h3><a class="reference external" href="https://data.worldbank.org/">World Bank Open Data</a><a class="headerlink" href="#world-bank-open-data" title="Permalink to this headline">¶</a></h3>
-<p>Citation: World Bank Group (2020), World Bank Open Data, <a class="reference external" href="https://data.worldbank.org/">https://data.worldbank.org/</a></p>
+<p>World Bank Group (2020), World Bank Open Data, <a class="reference external" href="https://data.worldbank.org/">https://data.worldbank.org/</a></p>
 <ul class="simple">
 <li><p>Population pyramid</p></li>
 </ul>
@@ -315,7 +308,7 @@
 </div>
 <div class="section" id="how-to-request-new-data-loader">
 <h2>2. How to request new data loader<a class="headerlink" href="#how-to-request-new-data-loader" title="Permalink to this headline">¶</a></h2>
-<p>If you want to use a new dataset for your analysis, please kindly inform us via <a class="reference external" href="https://github.com/lisphilar/covid19-sir/issues/new/?template=request-new-method-of-dataloader-class.md">GitHub Issues: Request new method of DataLoader class</a>. Please read <a class="reference external" href="https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html">Guideline of contribution</a> in advance.</p>
+<p>If you want to use a new dataset for your analysis, please kindly inform us using <a class="reference external" href="https://github.com/lisphilar/covid19-sir/issues/new/?template=request-new-method-of-dataloader-class.md">GitHub Issues: Request new method of DataLoader class</a>. Please read <a class="reference external" href="https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html">Guideline of contribution</a> in advance.</p>
 </div>
 <div class="section" id="use-a-local-csv-file-which-has-the-number-of-cases">
 <h2>3. Use a local CSV file which has the number of cases<a class="headerlink" href="#use-a-local-csv-file-which-has-the-number-of-cases" title="Permalink to this headline">¶</a></h2>

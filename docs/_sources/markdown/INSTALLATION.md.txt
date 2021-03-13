@@ -1,23 +1,15 @@
 # Installation
 
-The latest stable version of CovsirPhy is available at [PyPI (The Python Package Index): covsirphy](https://pypi.org/project/covsirphy/) and supports Python 3.6.9 or newer versions. It is recommended to use virtual environment.
+The latest stable version of CovsirPhy is available at [PyPI (The Python Package Index): covsirphy](https://pypi.org/project/covsirphy/) and supports Python 3.7 or newer versions. It is recommended to use virtual environment.
 
 ```bash
 pip install --upgrade covsirphy
 ```
 
-The latest development version can be install from [GitHub repository: CovsirPhy](https://github.com/lisphilar/covid19-sir). Please refer to [Guideline of contribution](https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html).
+You can find the latest development in [GitHub repository: CovsirPhy](https://github.com/lisphilar/covid19-sir) and install it with `pip` command. Please refer to [Guideline of contribution](https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html).
 
 ```bash
 pip install --upgrade "git+https://github.com/lisphilar/covid19-sir.git#egg=covsirphy"
-```
-
-Note:  
-When using **development versions** of CovsirPhy in Kaggle Notebook, please run the following codes to remove third-party `typing` package.
-
-```bash
-!pip uninstall typing -y
-!pip install --upgrade "git+https://github.com/lisphilar/covid19-sir.git#egg=covsirphy"
 ```
 
 # Dataset preparation
@@ -82,14 +74,15 @@ Xu, B., Gutierrez, B., Mekaru, S. et al. Epidemiological data from the COVID-19 
 
 ### [Our World In Data](https://github.com/owid/covid-19-data/tree/master/public/data)
 
-Citation: Hasell, J., Mathieu, E., Beltekian, D. et al. A cross-country database of COVID-19 testing. Sci Data 7, 345 (2020). [https://doi.org/10.1038/s41597-020-00688-8](https://doi.org/10.1038/s41597-020-00688-8)
+Hasell, J., Mathieu, E., Beltekian, D. et al. A cross-country database of COVID-19 testing. Sci Data 7, 345 (2020). [https://doi.org/10.1038/s41597-020-00688-8](https://doi.org/10.1038/s41597-020-00688-8)
 
 - The number of tests
 - The number of vaccinations
+- The number of people who received vaccinations
 
 ### [World Bank Open Data](https://data.worldbank.org/)
 
-Citation: World Bank Group (2020), World Bank Open Data, [https://data.worldbank.org/](https://data.worldbank.org/)
+World Bank Group (2020), World Bank Open Data, [https://data.worldbank.org/](https://data.worldbank.org/)
 
 - Population pyramid
 
@@ -102,7 +95,7 @@ Lisphilar (2020), GitHub repository, COVID-19 dataset in Japan, [https://github.
 
 ## 2. How to request new data loader
 
-If you want to use a new dataset for your analysis, please kindly inform us via [GitHub Issues: Request new method of DataLoader class](https://github.com/lisphilar/covid19-sir/issues/new/?template=request-new-method-of-dataloader-class.md). Please read [Guideline of contribution](https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html) in advance.
+If you want to use a new dataset for your analysis, please kindly inform us using [GitHub Issues: Request new method of DataLoader class](https://github.com/lisphilar/covid19-sir/issues/new/?template=request-new-method-of-dataloader-class.md). Please read [Guideline of contribution](https://lisphilar.github.io/covid19-sir/CONTRIBUTING.html) in advance.
 
 ## 3. Use a local CSV file which has the number of cases
 
