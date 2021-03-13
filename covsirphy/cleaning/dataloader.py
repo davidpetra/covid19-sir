@@ -309,7 +309,7 @@ class DataLoader(Term):
 
         filename = self.dir_path.joinpath(basename)
         force = self._download_necessity(filename=filename)
-        return VaccineData(filename=filename, force=force, verbose=verbose, df=dataframe)
+        return VaccineData(filename=filename, df=dataframe, force=force, verbose=verbose)
     
     
     def pyramid(self, basename="wbdata_population_pyramid.csv", verbose=1):
