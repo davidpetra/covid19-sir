@@ -52,7 +52,7 @@ class VaccineData(CleaningBase):
             self._raw = self._retrieve(filename=filename, verbose=verbose)
 
         #self._cleaned_df = self._cleaning()
-        self._cleaned_df = self.df
+        self._cleaned_df = df
         self._citation = "Hasell, J., Mathieu, E., Beltekian, D. et al." \
             " A cross-country database of COVID-19 testing. Sci Data 7, 345 (2020)." \
             " https://doi.org/10.1038/s41597-020-00688-8"
