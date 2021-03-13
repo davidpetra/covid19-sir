@@ -286,23 +286,32 @@ class DataLoader(Term):
         pcr_data.replace(japan_data)
         return pcr_data
 
-    def vaccine(self, basename="ourworldindata_vaccine.csv", verbose=1):
-        """
-        Load the dataset regarding vaccination.
-        https://github.com/owid/covid-19-data/tree/master/public/data
-        https://ourworldindata.org/coronavirus
+    # def vaccine(self, basename="ourworldindata_vaccine.csv", verbose=1):
+    #     """
+    #     Load the dataset regarding vaccination.
+    #     https://github.com/owid/covid-19-data/tree/master/public/data
+    #     https://ourworldindata.org/coronavirus
 
-        Args:
-            basename (str): basename of the file to save the data
-            verbose (int): level of verbosity
+    #     Args:
+    #         basename (str): basename of the file to save the data
+    #         verbose (int): level of verbosity
 
-        Returns:
-            covsirphy.VaccineData: dataset regarding vaccines
-        """
+    #     Returns:
+    #         covsirphy.VaccineData: dataset regarding vaccines
+    #     """
+    #     filename = self.dir_path.joinpath(basename)
+    #     force = self._download_necessity(filename=filename)
+    #     return VaccineData(filename=filename, force=force, verbose=verbose)
+
+    def vaccine_from_dataframe(self, dataframe):
+        basename="ourworldindata_vaccine.csv"
+        verbose=1
+
         filename = self.dir_path.joinpath(basename)
         force = self._download_necessity(filename=filename)
-        return VaccineData(filename=filename, force=force, verbose=verbose)
-
+        return VaccineData(filename=filename, force=force, verbose=verbose, df=dataframe)
+    
+    
     def pyramid(self, basename="wbdata_population_pyramid.csv", verbose=1):
         """
         Load the dataset regarding population pyramid.
