@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from covsirphy.util.error import deprecate, ScenarioNotFoundError, UnExecutedError
@@ -1349,10 +1350,23 @@ class Scenario(Term):
         pipeline.fit(X_train, y_train)
         # Register the pipeline and X-target for prediction
         self._lm_dict[name] = (pipeline, X_target)
+
         # Get train score
-        score_train = r2_score(pipeline.predict(X_train), y_train)
+        r2_train_score = r2_score(pipeline.predict(X_train), y_train)
+        r2_train_print = f"{r2_train_score:.3f}"
+        mape_train_score = mean_absolute_percentage_error(pipeline.predict(X_train), y_train)
+        mape_train_print = f"{mape_train_score:.3f}"
+
+        score_train = "R2 Score: " + r2_train_print + "MAPE Score: " + mape_train_print
+        
         # Get test score
-        score_test = r2_score(pipeline.predict(X_test), y_test)
+        r2_test_score = r2_score(pipeline.predict(X_test), y_test)
+        r2_test_print = f"{r2_test_score:.3f}"
+        mape_test_score = mean_absolute_percentage_error(pipeline.predict(X_test), y_test)
+        mape_test_print = f"{mape_test_score:.3f}"
+
+        score_test = "R2 Score: " + r2_test_print + "MAPE Score: " + mape_test_print
+
         # Return information regarding regression model
         reg_output = pipeline.named_steps.regressor
         # Intercept and coefficients
