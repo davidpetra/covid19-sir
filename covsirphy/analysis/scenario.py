@@ -1393,124 +1393,124 @@ class Scenario(Term):
         }
     
     def fit_modified(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None):
-    """
-    Same as Scenario.fit(), but with parameter tuning (alpha & l1_ratio)
+        """
+        Same as Scenario.fit(), but with parameter tuning (alpha & l1_ratio)
 
-    Args:
-        oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
-        name (str): scenario name
-        test_size (float): proportion of the test dataset of Elastic Net regression
-        seed (int): random seed when spliting the dataset to train/test data
-        delay (int): number of days of delay between policy measure and effect
-        on number of confirmed cases.
+        Args:
+            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
+            name (str): scenario name
+            test_size (float): proportion of the test dataset of Elastic Net regression
+            seed (int): random seed when spliting the dataset to train/test data
+            delay (int): number of days of delay between policy measure and effect
+            on number of confirmed cases.
 
-    Raises:
-        covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+        Raises:
+            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
 
-    Returns:
-        dict(str, object):
-            - scaler (object): scaler class
-            - regressor (object): regressor class
-            - alpha (float): alpha value used in Elastic Net regression
-            - l1_ratio (float): l1_ratio value used in Elastic Net regression
-            - score_train (float): determination coefficient of train dataset
-            - score_test (float): determination coefficient of test dataset
-            - X_train (numpy.array): X_train
-            - y_train (numpy.array): y_train
-            - X_test (numpy.array): X_test
-            - y_test (numpy.array): y_test
-            - X_target (numpy.array): X_target
-            - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-            - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-            - delay (int): number of days of delay between policy measure and effect
-                on number of confirmed cases.
+        Returns:
+            dict(str, object):
+                - scaler (object): scaler class
+                - regressor (object): regressor class
+                - alpha (float): alpha value used in Elastic Net regression
+                - l1_ratio (float): l1_ratio value used in Elastic Net regression
+                - score_train (float): determination coefficient of train dataset
+                - score_test (float): determination coefficient of test dataset
+                - X_train (numpy.array): X_train
+                - y_train (numpy.array): y_train
+                - X_test (numpy.array): X_test
+                - y_test (numpy.array): y_test
+                - X_target (numpy.array): X_target
+                - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
+                - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
+                - delay (int): number of days of delay between policy measure and effect
+                    on number of confirmed cases.
 
-    Note:
-        @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
-    """
-    warnings.simplefilter("ignore", category=ConvergenceWarning)
-    # Register OxCGRT data
-    if oxcgrt_data is not None:
-        warnings.warn(
-            "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
-            DeprecationWarning, stacklevel=1)
-        self.register(extras=[oxcgrt_data])
-    # ODE model
-    model = self._tracker(name).last_model
-    if model is None:
-        raise UnExecutedError(
-            "Scenario.estimate() or Scenario.add()",
-            message=f", specifying @model (covsirphy.SIRF etc.) and @name='{name}'.")
-    # Set delay effect
-    if delay is None:
-        delay, delay_df = self.estimate_delay(oxcgrt_data)
-        removed_cols = delay_df.columns.tolist()
-    else:
-        delay = self._ensure_natural_int(delay, name="delay")
-        removed_cols = []
-    # Create training/test dataset
-    try:
-        X, y, X_target = self._fit_create_data(
-            model=model, name=name, delay=delay, removed_cols=removed_cols)
-    except NotRegisteredExtraError:
-        raise NotRegisteredExtraError(
-            "Scenario.register(jhu_data, population_data, extras=[...])",
-            message="with extra datasets") from None
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
-    # Create pipeline for learning
-    cv = linear_model.MultiTaskElasticNetCV(
-        alphas=[0.001, 0.005, 0.009, 0.01, 0.1, 1, 10, 50, 90, 100],
-        l1_ratio=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        cv=5, n_jobs=-1)
-    steps = [
-        ("scaler", MinMaxScaler()),
-        ("regressor", cv),
-    ]
-    pipeline = Pipeline(steps=steps)
-    pipeline.fit(X_train, y_train)
-    # Register the pipeline and X-target for prediction
-    self._lm_dict[name] = (pipeline, X_target)
+        Note:
+            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
+        """
+        warnings.simplefilter("ignore", category=ConvergenceWarning)
+        # Register OxCGRT data
+        if oxcgrt_data is not None:
+            warnings.warn(
+                "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
+                DeprecationWarning, stacklevel=1)
+            self.register(extras=[oxcgrt_data])
+        # ODE model
+        model = self._tracker(name).last_model
+        if model is None:
+            raise UnExecutedError(
+                "Scenario.estimate() or Scenario.add()",
+                message=f", specifying @model (covsirphy.SIRF etc.) and @name='{name}'.")
+        # Set delay effect
+        if delay is None:
+            delay, delay_df = self.estimate_delay(oxcgrt_data)
+            removed_cols = delay_df.columns.tolist()
+        else:
+            delay = self._ensure_natural_int(delay, name="delay")
+            removed_cols = []
+        # Create training/test dataset
+        try:
+            X, y, X_target = self._fit_create_data(
+                model=model, name=name, delay=delay, removed_cols=removed_cols)
+        except NotRegisteredExtraError:
+            raise NotRegisteredExtraError(
+                "Scenario.register(jhu_data, population_data, extras=[...])",
+                message="with extra datasets") from None
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
+        # Create pipeline for learning
+        cv = linear_model.MultiTaskElasticNetCV(
+            alphas=[0.001, 0.005, 0.009, 0.01, 0.1, 1, 10, 50, 90, 100],
+            l1_ratio=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            cv=5, n_jobs=-1)
+        steps = [
+            ("scaler", MinMaxScaler()),
+            ("regressor", cv),
+        ]
+        pipeline = Pipeline(steps=steps)
+        pipeline.fit(X_train, y_train)
+        # Register the pipeline and X-target for prediction
+        self._lm_dict[name] = (pipeline, X_target)
 
-    # Get train score
-    r2_train_score = r2_score(pipeline.predict(X_train), y_train)
-    r2_train_print = f"{r2_train_score:.3f}"
-    mape_train_score = mean_absolute_percentage_error(pipeline.predict(X_train), y_train)
-    mape_train_print = f"{mape_train_score:.3f}"
+        # Get train score
+        r2_train_score = r2_score(pipeline.predict(X_train), y_train)
+        r2_train_print = f"{r2_train_score:.3f}"
+        mape_train_score = mean_absolute_percentage_error(pipeline.predict(X_train), y_train)
+        mape_train_print = f"{mape_train_score:.3f}"
 
-    score_train = "R2 Score: " + r2_train_print + ", MAPE Score: " + mape_train_print
-    
-    # Get test score
-    r2_test_score = r2_score(pipeline.predict(X_test), y_test)
-    r2_test_print = f"{r2_test_score:.3f}"
-    mape_test_score = mean_absolute_percentage_error(pipeline.predict(X_test), y_test)
-    mape_test_print = f"{mape_test_score:.3f}"
+        score_train = "R2 Score: " + r2_train_print + ", MAPE Score: " + mape_train_print
+        
+        # Get test score
+        r2_test_score = r2_score(pipeline.predict(X_test), y_test)
+        r2_test_print = f"{r2_test_score:.3f}"
+        mape_test_score = mean_absolute_percentage_error(pipeline.predict(X_test), y_test)
+        mape_test_print = f"{mape_test_score:.3f}"
 
-    score_test = "R2 Score: " + r2_test_print + ", MAPE Score: " + mape_test_print
+        score_test = "R2 Score: " + r2_test_print + ", MAPE Score: " + mape_test_print
 
-    # Return information regarding regression model
-    reg_output = pipeline.named_steps.regressor
-    print(f"parameters of Elastic Net: alpha={reg_output.alpha_}, l1_ration={reg_output.l1_ratio_}")
+        # Return information regarding regression model
+        reg_output = pipeline.named_steps.regressor
+        print(f"parameters of Elastic Net: alpha={reg_output.alpha_}, l1_ration={reg_output.l1_ratio_}")
 
-    # Intercept and coefficients
-    intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
-    intercept_df.insert(0, "Intercept", None)
-    intercept_df["Intercept"] = reg_output.intercept_
-    # Return information
-    return {
-        **{k: type(v) for (k, v) in steps},
-        "alpha": reg_output.alpha_,
-        "l1_ratio": reg_output.l1_ratio_,
-        "score_train": score_train,
-        "score_test": score_test,
-        "X_train": X_train,
-        "y_train": y_train,
-        "X_test": X_test,
-        "y_test": y_test,
-        "X_target": X_target,
-        "intercept": intercept_df,
-        "coef": intercept_df,
-        "delay": delay
-    }
+        # Intercept and coefficients
+        intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
+        intercept_df.insert(0, "Intercept", None)
+        intercept_df["Intercept"] = reg_output.intercept_
+        # Return information
+        return {
+            **{k: type(v) for (k, v) in steps},
+            "alpha": reg_output.alpha_,
+            "l1_ratio": reg_output.l1_ratio_,
+            "score_train": score_train,
+            "score_test": score_test,
+            "X_train": X_train,
+            "y_train": y_train,
+            "X_test": X_test,
+            "y_test": y_test,
+            "X_target": X_target,
+            "intercept": intercept_df,
+            "coef": intercept_df,
+            "delay": delay
+        }
 
     
 
