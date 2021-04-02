@@ -93,6 +93,7 @@ class Term(object):
     OTHERS = "Others"
     # Metrics
     METRICS_DICT = {
+        "MAPE": sklearn.metrics.mean_absolute_percentage_error,
         "MAE": sklearn.metrics.mean_absolute_error,
         "MSE": sklearn.metrics.mean_squared_error,
         "MSLE": sklearn.metrics.mean_squared_log_error,
