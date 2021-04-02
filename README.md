@@ -27,8 +27,7 @@
 
 - [Data preparation and data visualization](https://lisphilar.github.io/covid19-sir/usage_dataset.html)
 - [Phase setting with S-R Trend analysis](https://lisphilar.github.io/covid19-sir/usage_phases.html)
-- [Numerical simulation of ODE models](https://lisphilar.github.io/covid19-sir/usage_theoretical.html)
-  - SIR, SIR-D and SIR-F model
+- [Numerical simulation of ODE models](https://lisphilar.github.io/covid19-sir/usage_theoretical.html): SIR, SIR-D and SIR-F model
 - [Phase-dependent parameter estimation of ODE models](https://lisphilar.github.io/covid19-sir/usage_quickest.html)
 - [Scenario analysis](https://lisphilar.github.io/covid19-sir/usage_quick.html): Simulate the number of cases with user-defined parameter values
 - [Find the relationship of government response and parameter values](https://lisphilar.github.io/covid19-sir/usage_policy.html)
@@ -106,10 +105,17 @@ Please refer to [LICENSE](https://github.com/lisphilar/covid19-sir/blob/master/L
 
 ## Citation
 
-We have no original papers the author and contributors wrote, but please cite this package as follows.
+We have no original papers the author and contributors wrote, but please cite this library as follows with version number (`import covsirphy as cs; cs.__version__`).
 
-CovsirPhy Development Team (2020), CovsirPhy, Python package for COVID-19 analysis with SIR-derived ODE models, [https://github.com/lisphilar/covid19-sir](https://github.com/lisphilar/covid19-sir)
+CovsirPhy Development Team (2020-2021), CovsirPhy version [version number]: Python library for COVID-19 analysis with phase-dependent SIR-derived ODE models, [https://github.com/lisphilar/covid19-sir](https://github.com/lisphilar/covid19-sir)
 
 If you want to use SIR-F model, S-R trend analysis, phase-dependent approach to SIR-derived models, and other scientific method performed with CovsirPhy, please cite the next Kaggle notebook.
 
-Lisphilar (2020), Kaggle notebook, COVID-19 data with SIR model, [https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model](https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model)
+Hirokazu Takaya (2020-2021), Kaggle Notebook, COVID-19 data with SIR model, [https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model](https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model)
+
+We can check the citation with the following script (version >= 2.18.0).
+
+```Python
+import covsirphy as cs
+cs.__citation__
+```

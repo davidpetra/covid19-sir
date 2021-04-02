@@ -81,7 +81,7 @@
     "# Specify country and province (optinal) names\n",
     "snl = cs.Scenario(country=\"Japan\", province=None)\n",
     "# Register datasets\n",
-    "snl.register(jhu_data, population_data, extras=[oxcgrt_data, pcr_data])"
+    "snl.register(jhu_data, population_data, extras=[oxcgrt_data, pcr_data, vaccine_data])"
    ]
   },
   {
@@ -143,7 +143,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# pply \"show_figures=False\" to turn-off intaractive mode temporally\n",
+    "# apply \"show_figures=False\" to turn-off intaractive mode temporally\n",
     "# snl.records(show_figure=False)"
    ]
   },
@@ -182,16 +182,8 @@
    "metadata": {}
   },
   {
-   "cell_type": "markdown",
-   "metadata": {},
    "source": [
-    "### Check records\n",
-    "Let's see the records at first. `Scenario.records()` method return the records as a pandas dataframe and show a line plot. Some kind of complement will be done for analysis, if necessary."
-   ]
-  },
-  {
-   "source": [
-    "`Scenario.records()` shows the number of infected/recovered/fatal cases as default. Using `variables` argument, we can set the variables to show."
+    "We can produce filenames more easily with `Filer` class. Please refer to the scripts in [example directory of the repository](https://github.com/lisphilar/covid19-sir/tree/master/example)."
    ],
    "cell_type": "markdown",
    "metadata": {}
@@ -202,8 +194,74 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Show main variables\n",
-    "snl.records().tail()"
+    "filer = cs.Filer(directory=\"output\", prefix=\"jpn\", suffix=None, numbering=\"01\")\n",
+    "# filer.png(\"records\")\n",
+    "# -> {\"filename\": \"<absolute path>/output/jpn_01_records.png\"}\n",
+    "# filer.jpg(\"records\")\n",
+    "# -> {\"filename\": \"<absolute path>/output/jpn_01_records.jpg\"}\n",
+    "# filer.csv(\"records\", index=True)\n",
+    "# -> {\"path_or_buf\": \"<absolute path>/output/jpn_01_records.csv\", index: True}"
+   ]
+  },
+  {
+   "source": [
+    "We can save files more easily with `Filer` as follows."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# record_df = snl.records(**filer.png(\"records\"))\n",
+    "# record_df.to_csv(**filer.csv(\"records\", index=False))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Check records\n",
+    "Let's see the records at first. `Scenario.records()` method return the records as a pandas dataframe and show a line plot. Some kind of complement will be done for analysis, if necessary."
+   ]
+  },
+  {
+   "source": [
+    "`Scenario.records()` shows the number of infected/recovered/fatal cases as default. Using `variables` argument, we can set the variables to show. Here, we chack the number of confirmed/fatal/recovered cases. They are cumurative values."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "snl.records(variables=\"CFR\").tail()\n",
+    "# This is the same as\n",
+    "# snl.records(variables=[\"Confirmed\", \"Fatal\", \"Recovered\"])"
+   ]
+  },
+  {
+   "source": [
+    "The number of infected cases on date:"
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "_ = snl.records(variables=\"I\")\n",
+    "# This is the same as\n",
+    "# snl.records(variables=[\"Infected\"])"
    ]
   },
   {
@@ -219,10 +277,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# All available variables for the registered datasets\n",
     "df = snl.records(variables=\"all\", show_figure=False)\n",
-    "pprint(df.set_index(\"Date\").columns.tolist(), compact=True)\n",
-    "# Note: from version 2.17.0-alpha (stable: 2.18.0), \"Tests_diff\" will be added."
+    "pprint(df.set_index(\"Date\").columns.tolist(), compact=True)"
    ]
   },
   {
@@ -234,8 +290,7 @@
   },
   {
    "source": [
-    "# We can select the varialbles of both of the main and extra datasets if registered\n",
-    "snl.records(variables=[\"Confirmed\", \"Tests\"]).tail()"
+    "snl.records(variables=[\"Vaccinated_once\"]).tail()"
    ],
    "cell_type": "code",
    "metadata": {},
@@ -256,7 +311,7 @@
    "outputs": [],
    "source": [
     "# Acceptable variables are the same as Scenario.records()\n",
-    "_ = snl.records_diff(variables=[\"Confirmed\"], window=7)"
+    "_ = snl.records_diff(variables=\"C\", window=7)"
    ]
   },
   {
@@ -290,12 +345,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Perform S-R trend analysis and set phases\n",
-    "_ = snl.trend()\n",
-    "# Show the summary of phases\n",
-    "snl.summary()\n",
-    "# Or,\n",
-    "# snl.trend().summary()"
+    "snl.trend().summary()"
    ]
   },
   {
@@ -547,9 +597,15 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Default variables and all phases for main scenario\n",
     "_ =snl.simulate(name=\"Main\")"
    ]
+  },
+  {
+   "source": [
+    "We can select variables and phases with arguments."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
   },
   {
    "cell_type": "code",
@@ -557,8 +613,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# We canselect variables and phases\n",
-    "_ = snl.simulate(name=\"Main\", variables=[\"Confirmed\", \"Infected\"], phases=[\"5th\", \"6th\"])"
+    "_ = snl.simulate(name=\"Main\", variables=[\"Confirmed\", \"Infected\"], phases=[\"9th\", \"10th\"])"
    ]
   },
   {
@@ -679,6 +734,21 @@
    "metadata": {}
   },
   {
+   "source": [
+    "`Scenario.fit()` method learns the relationship of indicators (X) and the parameter values (y) with regresion model (Elastic Net regression). X was registered with `Scenario.register()` and y was calculated with `Scenario.estimate()` in advance respectively."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "source": [
+    "The indicator used to estimate delay period (\"Stringency_index\" as default) will be automatically from X dataset. If you have some indicators to be removed additionally, please use `removed_cols` argument (list of indicator names) of `Scenario.fit()`.  \n",
+    "Here, we will remove \"Tests\" and \"Tests_diff\" as an example. (This is because we have \"Testing_policy\" indicator and they may be overlaped.)"
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
@@ -687,12 +757,49 @@
     "# Create Forecast scenario (copy Main scenario and delete future phases)\n",
     "snl.clear(name=\"Forecast\", template=\"Main\")\n",
     "# Fitting with linear regression model (Elastic Net regression)\n",
-    "fit_dict = snl.fit(name=\"Forecast\")\n",
+    "fit_dict = snl.fit(name=\"Forecast\", removed_cols=[\"Tests\", \"Tests_diff\"])"
+   ]
+  },
+  {
+   "source": [
+    "Show determination coeefients of training/test dataset."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "print(f\"Determination coefficient: {fit_dict['score_train']:.3f} (train)\")\n",
-    "print(f\"Determination coefficient: {fit_dict['score_test']:.3f} (test)\")\n",
+    "print(f\"Determination coefficient: {fit_dict['score_test']:.3f} (test)\")"
+   ]
+  },
+  {
+   "source": [
+    "Show the intercept and coefficient values of the regression model."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "print(\"Intercept and coefficient:\")\n",
     "fit_dict[\"intercept\"].style.background_gradient(axis=None)"
    ]
+  },
+  {
+   "source": [
+    "`Scenario.predict()` predicts the parameter values of future phases."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
   },
   {
    "cell_type": "code",
@@ -701,8 +808,17 @@
    "outputs": [],
    "source": [
     "# Short-term prediction\n",
-    "snl.predict(name=\"Forecast\").summary(name=\"Forecast\")"
+    "snl.predict(name=\"Forecast\").summary(name=\"Forecast\")\n",
+    "# We can select list of days to predict optionally\n",
+    "# snl.predict(days=[1, 4], name=\"Forecast\").summary(name=\"Forecast\")"
    ]
+  },
+  {
+   "source": [
+    "Or, short-cut `.fit()` and `.predict()` with `Scenario.fit_predict()`."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
   },
   {
    "cell_type": "code",
@@ -715,16 +831,11 @@
    ]
   },
   {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
    "source": [
-    "# Set 01Jun2021 as tthe last date of the future\n",
-    "snl.add(name=\"Forecast\", end_date=\"01Jun2021\")\n",
-    "# Simulate the number of cases\n",
-    "_ = snl.simulate(name=\"Forecast\").tail()"
-   ]
+    "To compare this scenario with the other scenarios, we should adjust the last end date with `Scenario.adjust_end()` because the last end date is differenct from the other scenarios at this time."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
   },
   {
    "cell_type": "code",
@@ -732,7 +843,45 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Compare the number of cases with main scenario for the last two phases\n",
+    "# Adjust the last end dates\n",
+    "snl.adjust_end()\n",
+    "# Show the last phases of all scenarios\n",
+    "all_df = snl.summary().reset_index()\n",
+    "for name in all_df[\"Scenario\"].unique():\n",
+    "    df = snl.summary(name=name)\n",
+    "    last_end_date = df.loc[df.index[-1], \"End\"]\n",
+    "    print(f\"{name} scenario: to {last_end_date}\")"
+   ]
+  },
+  {
+   "source": [
+    "Simulate the number of cases of forecast scenario."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "_ = snl.simulate(variables=\"CFR\", name=\"Forecast\").tail()"
+   ]
+  },
+  {
+   "source": [
+    "Compare the number of cases with main scenario for the last three phases."
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "all_phases = snl.summary(name=\"Forecast\").index.tolist()\n",
     "# Should start with a past phase: the last phase, the first and the second future phase\n",
     "_ = snl.history(\"Infected\", phases=all_phases[-3:])"

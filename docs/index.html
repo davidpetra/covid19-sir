@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                2.17.0-epsilon
+                2.18.0-alpha
               </div>
             
           
@@ -225,8 +225,8 @@ visualization</a></p></li>
 <li><p><a class="reference external" href="https://lisphilar.github.io/covid19-sir/usage_phases.html">Phase setting with S-R Trend
 analysis</a></p></li>
 <li><p><a class="reference external" href="https://lisphilar.github.io/covid19-sir/usage_theoretical.html">Numerical simulation of ODE
-models</a></p></li>
-<li><p>SIR, SIR-D and SIR-F model</p></li>
+models</a>:
+SIR, SIR-D and SIR-F model</p></li>
 <li><p><a class="reference external" href="https://lisphilar.github.io/covid19-sir/usage_quickest.html">Phase-dependent parameter estimation of ODE
 models</a></p></li>
 <li><p><a class="reference external" href="https://lisphilar.github.io/covid19-sir/usage_quick.html">Scenario
@@ -336,15 +336,21 @@ file.</p>
 <div class="section" id="citation">
 <h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
 <p>We have no original papers the author and contributors wrote, but please
-cite this package as follows.</p>
-<p>CovsirPhy Development Team (2020), CovsirPhy, Python package for
-COVID-19 analysis with SIR-derived ODE models,
-<a class="reference external" href="https://github.com/lisphilar/covid19-sir">https://github.com/lisphilar/covid19-sir</a></p>
+cite this library as follows with version number
+(<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">covsirphy</span> <span class="pre">as</span> <span class="pre">cs;</span> <span class="pre">cs.__version__</span></code>).</p>
+<p>CovsirPhy Development Team (2020-2021), CovsirPhy version [version
+number]: Python library for COVID-19 analysis with phase-dependent
+SIR-derived ODE models, <a class="reference external" href="https://github.com/lisphilar/covid19-sir">https://github.com/lisphilar/covid19-sir</a></p>
 <p>If you want to use SIR-F model, S-R trend analysis, phase-dependent
 approach to SIR-derived models, and other scientific method performed
 with CovsirPhy, please cite the next Kaggle notebook.</p>
-<p>Lisphilar (2020), Kaggle notebook, COVID-19 data with SIR model,
-<a class="reference external" href="https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model">https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model</a></p>
+<p>Hirokazu Takaya (2020-2021), Kaggle Notebook, COVID-19 data with SIR
+model, <a class="reference external" href="https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model">https://www.kaggle.com/lisphilar/covid-19-data-with-sir-model</a></p>
+<p>We can check the citation with the following script (version &gt;= 2.18.0).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">covsirphy</span> <span class="k">as</span> <span class="nn">cs</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">__citation__</span>
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -465,9 +471,9 @@ with CovsirPhy, please cite the next Kaggle notebook.</p>
 <li class="toctree-l1"><a class="reference internal" href="usage_phases.html">Usage: phases</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Preperation">Preperation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Set-phases-with-S-R-trend-analysis">Set phases with S-R trend analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Disable/enable-phases">Disable/enable phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Remove-un-necessary-change-points-manually">Remove un-necessary change points manually</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Separate-phases-manually">Separate phases manually</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Disable/enable-phases-manually">Disable/enable phases manually</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage_phases.html#Add-phases-one-by-one">Add phases one by one</a></li>
 </ul>
 </li>
@@ -551,8 +557,6 @@ with CovsirPhy, please cite the next Kaggle notebook.</p>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.phase_estimator">covsirphy.phase.phase_estimator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.phase_series">covsirphy.phase.phase_series module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.phase_unit">covsirphy.phase.phase_unit module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.sr_change">covsirphy.phase.sr_change module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.trend">covsirphy.phase.trend module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.simulation.html">covsirphy.simulation package</a><ul>
@@ -561,12 +565,18 @@ with CovsirPhy, please cite the next Kaggle notebook.</p>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.simulation.html#module-covsirphy.simulation.simulator">covsirphy.simulation.simulator module</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="covsirphy.trend.html">covsirphy.trend package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="covsirphy.trend.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="covsirphy.trend.html#module-covsirphy.trend.sr_change">covsirphy.trend.sr_change module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="covsirphy.trend.html#module-covsirphy.trend.trend_detector">covsirphy.trend.trend_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="covsirphy.trend.html#module-covsirphy.trend.trend_plot">covsirphy.trend.trend_plot module</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.util.html">covsirphy.util package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.argument">covsirphy.util.argument module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.error">covsirphy.util.error module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.file">covsirphy.util.file module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.optimize">covsirphy.util.optimize module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.filer">covsirphy.util.filer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.stopwatch">covsirphy.util.stopwatch module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.term">covsirphy.util.term module</a></li>
 </ul>
@@ -577,7 +587,6 @@ with CovsirPhy, please cite the next Kaggle notebook.</p>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.visualization.html#module-covsirphy.visualization.colored_map">covsirphy.visualization.colored_map module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.visualization.html#module-covsirphy.visualization.japan_map">covsirphy.visualization.japan_map module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.visualization.html#module-covsirphy.visualization.line_plot">covsirphy.visualization.line_plot module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="covsirphy.visualization.html#module-covsirphy.visualization.trend_plot">covsirphy.visualization.trend_plot module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="covsirphy.visualization.html#module-covsirphy.visualization.vbase">covsirphy.visualization.vbase module</a></li>
 </ul>
 </li>

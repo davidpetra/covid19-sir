@@ -56,7 +56,7 @@ class OxCGRTData(CleaningBase):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Country (pandas.Category): country/region name
                     - ISO3 (str): ISO 3166-1 alpha-3, like JPN
                     - other column names are defined by OxCGRTData.COL_DICT
@@ -81,6 +81,9 @@ class OxCGRTData(CleaningBase):
                 "Korea, South": "South Korea",
             }
         )
+        grl_df = df.loc[df[self.COUNTRY] == "Denmark"].copy()
+        grl_df.loc[:, [self.ISO3, self.COUNTRY]] = ["GRL", "Greenland"]
+        df = pd.concat([df, grl_df], sort=True, ignore_index=True)
         # Set 'Others' as the country name of cruise ships
         ships = ["Diamond Princess", "Costa Atlantica", "Grand Princess", "MS Zaandam"]
         for ship in ships:
@@ -122,7 +125,7 @@ class OxCGRTData(CleaningBase):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - other column names are defined by OxCGRTData.COL_DICT
         """
         country_arg = country

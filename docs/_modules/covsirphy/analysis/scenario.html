@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                2.17.0-epsilon
+                2.18.0-alpha
               </div>
             
           
@@ -187,6 +187,7 @@
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">r2_score</span>
 <span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">MinMaxScaler</span>
+<span class="kn">from</span> <span class="nn">covsirphy.util.argument</span> <span class="kn">import</span> <span class="n">find_args</span>
 <span class="kn">from</span> <span class="nn">covsirphy.util.error</span> <span class="kn">import</span> <span class="n">deprecate</span><span class="p">,</span> <span class="n">ScenarioNotFoundError</span><span class="p">,</span> <span class="n">UnExecutedError</span>
 <span class="kn">from</span> <span class="nn">covsirphy.util.error</span> <span class="kn">import</span> <span class="n">NotRegisteredMainError</span><span class="p">,</span> <span class="n">NotRegisteredExtraError</span>
 <span class="kn">from</span> <span class="nn">covsirphy.util.error</span> <span class="kn">import</span> <span class="n">NotInteractiveError</span>
@@ -416,12 +417,39 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">switch_complement</span><span class="p">(</span><span class="n">whether</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">show_complement</span><span class="p">()</span></div>
 
+    <span class="k">def</span> <span class="nf">_convert_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abbr</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert abbreviated variable names to complete names.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            abbr (list[str] or str or None): variable names or abbreviated names</span>
+<span class="sd">            candidates (list[str]): all candidates</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: complete names of variables</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Selectable values of @abbr are as follows.</span>
+<span class="sd">            - None: return default list, [&quot;Infected&quot;, &quot;Recovered&quot;, &quot;Fatal&quot;] (changed in the future)</span>
+<span class="sd">            - list[str]: return the selected variables</span>
+<span class="sd">            - &quot;all&quot;: the all available variables</span>
+<span class="sd">            - str: abbr, like &quot;CIFR&quot; (Confirmed/Infected/Fatal/Recovered), &quot;CFR&quot;, &quot;RC&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">abbr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CI</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">abbr</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_list</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;candidates&quot;</span><span class="p">)</span>
+        <span class="n">abbr_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="p">,</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">CI</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="p">}</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">abbr</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">abbr</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">abbr</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">abbr_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_list</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="n">candidates</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variables&quot;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Scenario.records"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.records">[docs]</a>    <span class="k">def</span> <span class="nf">records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the records as a dataframe.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            variables (list[str] or str or None): list of variables, &#39;all&#39;, None (Infected/Fatal/Recovered)</span>
+<span class="sd">            variables (list[str] or str or None): variable names or abbreviated names</span>
 <span class="sd">            kwargs: the other keyword arguments of Scenario.line_plot()</span>
 
 <span class="sd">        Raises:</span>
@@ -436,55 +464,51 @@
 <span class="sd">                Index</span>
 <span class="sd">                    reset index</span>
 <span class="sd">                Columns</span>
-<span class="sd">                    - Date (pd.TimeStamp): Observation date</span>
+<span class="sd">                    - Date (pd.Timestamp): Observation date</span>
 <span class="sd">                    - Columns set by @variables (int)</span>
 
 <span class="sd">        Note:</span>
 <span class="sd">            - Records with Recovered &gt; 0 will be selected.</span>
 <span class="sd">            - If complement was performed by Scenario.complement() or Scenario(auto_complement=True),</span>
 <span class="sd">            The kind of complement will be added to the title of the figure.</span>
-<span class="sd">            - @variables can be selected from Susceptible/Confirmed/Infected/Fatal/Recovered.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Selectable values of @variables are as follows.</span>
+<span class="sd">            - None: return default list, [&quot;Infected&quot;, &quot;Recovered&quot;, &quot;Fatal&quot;] (changed in the future)</span>
+<span class="sd">            - list[str]: return the selected variables</span>
+<span class="sd">            - &quot;all&quot;: the all available variables</span>
+<span class="sd">            - str: abbr, like &quot;CIFR&quot; (Confirmed/Infected/Fatal/Recovered), &quot;CFR&quot;, &quot;RC&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get necessary data for the variables</span>
-        <span class="n">all_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">records_all</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">all_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CI</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="n">variables</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">all_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_list</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="n">all_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variables&quot;</span><span class="p">)</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">all_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">,</span> <span class="o">*</span><span class="n">variables</span><span class="p">]]</span>
+        <span class="n">all_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">records_all</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">)</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">all_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">all_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">variables</span><span class="p">]</span>
         <span class="c1"># Figure</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">complemented</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="si">}</span><span class="s2">: Cases over time</span><span class="se">\n</span><span class="s2">with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">complemented</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="si">}</span><span class="s2">: Cases over time&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span>
-            <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">df</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Scenario.records_diff"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.records_diff">[docs]</a>    <span class="k">def</span> <span class="nf">records_diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of daily new cases (the first discreate difference of records).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            variables (list[str] or str or None): list of variables, &#39;all&#39;, None (Infected/Fatal/Recovered)</span>
+<span class="sd">            variables (list[str] or str or None): variable names or abbreviated names (as the same as Scenario.records())</span>
 <span class="sd">            window (int): window of moving average, &gt;= 1</span>
 <span class="sd">            kwargs: the other keyword arguments of Scenario.line_plot()</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            pandas.DataFrame</span>
 <span class="sd">                Index</span>
-<span class="sd">                    - Date (pd.TimeStamp): Observation date</span>
+<span class="sd">                    - Date (pd.Timestamp): Observation date</span>
 <span class="sd">                Columns</span>
 <span class="sd">                    - Confirmed (int): daily new cases of Confirmed, if calculated</span>
 <span class="sd">                    - Infected (int):  daily new cases of Infected, if calculated</span>
 <span class="sd">                    - Fatal (int):  daily new cases of Fatal, if calculated</span>
 <span class="sd">                    - Recovered (int):  daily new cases of Recovered, if calculated</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            @variables will be selected from Confirmed, Infected, Fatal and Recovered.</span>
-<span class="sd">            If None was set as @variables, [&quot;Confirmed&quot;, &quot;Fatal&quot;, &quot;Recovered&quot;] will be used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_natural_int</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;window&quot;</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">)</span>
@@ -503,7 +527,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
         <span class="n">series</span> <span class="o">=</span> <span class="n">ParamTracker</span><span class="o">.</span><span class="n">create_series</span><span class="p">(</span>
-            <span class="n">first_date</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">first_date</span><span class="p">,</span> <span class="n">last_date</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">last_date</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
+            <span class="n">first_date</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">first_date</span><span class="p">,</span> <span class="n">last_date</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">today</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">population</span><span class="p">)</span>
         <span class="n">tracker</span> <span class="o">=</span> <span class="n">ParamTracker</span><span class="p">(</span>
             <span class="n">record_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">records</span><span class="p">(</span><span class="n">extras</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">phase_series</span><span class="o">=</span><span class="n">series</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tracker_dict</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">MAIN</span><span class="p">:</span> <span class="n">tracker</span><span class="p">}</span>
@@ -567,7 +591,7 @@
             <span class="n">tracker</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                 <span class="n">end_date</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="n">population</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="n">last_date</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">unit</span><span class="p">(</span><span class="s2">&quot;last&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">end_date</span>
+            <span class="n">last_date</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">last_end_date</span><span class="p">()</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s1">&#39;@end_date must be over </span><span class="si">{</span><span class="n">last_date</span><span class="si">}</span><span class="s1">. However, </span><span class="si">{</span><span class="n">end_date</span><span class="si">}</span><span class="s1"> was applied.&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tracker_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tracker</span>
@@ -763,19 +787,26 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Scenario.trend"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.trend">[docs]</a>    <span class="k">def</span> <span class="nf">trend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Scenario.trend"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.trend">[docs]</a>    <span class="k">def</span> <span class="nf">trend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform S-R trend analysis and set phases.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            min_size (int or None): minimum value of phase length [days] (over 2) or None (equal to max of 7 and delay period)</span>
 <span class="sd">            force (bool): if True, change points will be over-written</span>
 <span class="sd">            name (str): phase series name</span>
 <span class="sd">            show_figure (bool): if True, show the result as a figure</span>
 <span class="sd">            filename (str): filename of the figure, or None (display)</span>
-<span class="sd">            kwargs: keyword arguments of covsirphy.ChangeFinder() and covsirphy.trend_plot()</span>
+<span class="sd">            kwargs: keyword arguments of</span>
+<span class="sd">                - covsirphy.TrendDetector() and covsirphy.TrendDetector.sr()</span>
+<span class="sd">                - covsirphy.trend_plot()</span>
+<span class="sd">                - Scenario.estimate_delay()</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            covsirphy.Scenario: self</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            If @min_size is None, this will be thw max value of 7 days and delay period calculated with .estimate_delay() method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Arguments</span>
         <span class="k">if</span> <span class="s2">&quot;n_points&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -793,13 +824,22 @@
             <span class="n">force</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;set_phases&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
+        <span class="c1"># Minimum size of phases</span>
+        <span class="k">if</span> <span class="n">min_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">delay</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_delay</span><span class="p">(</span><span class="o">**</span><span class="n">find_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimate_delay</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="c1"># Extra datasets are not registered</span>
+                <span class="n">delay</span> <span class="o">=</span> <span class="mi">7</span>
+            <span class="n">min_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">delay</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_int_range</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;min_size&quot;</span><span class="p">,</span> <span class="n">value_range</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_size</span>
         <span class="c1"># S-R trend analysis</span>
         <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tracker</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span> <span class="ow">and</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">show_figure</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span> <span class="k">else</span> <span class="n">filename</span>
-        <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">trend</span><span class="p">(</span>
-            <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="n">show_figure</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">trend</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span> <span class="n">show_figure</span><span class="o">=</span><span class="n">show_figure</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Disable 0th phase, if necessary</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">include_init_phase</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">phases</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;0th&quot;</span><span class="p">])</span>
@@ -880,7 +920,7 @@
 <span class="sd">        Simulate ODE models with set/estimated parameter values and show it as a figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            variables (list[str] or None): variables to include, Infected/Fatal/Recovered when None</span>
+<span class="sd">            variables (list[str] or str or None): variable names or abbreviated names (as the same as Scenario.records())</span>
 <span class="sd">            phases (list[str] or None): phases to shoe or None (all phases)</span>
 <span class="sd">            name (str): phase series name. If &#39;Main&#39;, main PhaseSeries will be used</span>
 <span class="sd">            y0_dict(dict[str, float] or None): dictionary of initial values of variables</span>
@@ -891,10 +931,10 @@
 <span class="sd">                Index</span>
 <span class="sd">                    reset index</span>
 <span class="sd">                Columns</span>
-<span class="sd">                    - Date (pd.TimeStamp): Observation date</span>
+<span class="sd">                    - Date (pd.Timestamp): Observation date</span>
 <span class="sd">                    - Country (str): country/region name</span>
 <span class="sd">                    - Province (str): province/prefecture/state name</span>
-<span class="sd">                    - Variables of the model and dataset (int): Confirmed etc.</span>
+<span class="sd">                    - Variables of the main dataset (int): Confirmed etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tracker</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tracker</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="c1"># Select phases</span>
@@ -905,14 +945,14 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">sim_df</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">y0_dict</span><span class="o">=</span><span class="n">y0_dict</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">UnExecutedError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">UnExecutedError</span><span class="p">(</span>
-                <span class="s2">&quot;Scenario.trend() or Scenario.add(), and Scenario.estimate(model)&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
-        <span class="c1"># Show figure</span>
+            <span class="k">raise</span> <span class="n">UnExecutedError</span><span class="p">(</span><span class="s2">&quot;Scenario.trend() or Scenario.add(), and Scenario.estimate(model)&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+        <span class="c1"># Variables to show</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">sim_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE</span><span class="p">)</span>
-        <span class="n">fig_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_list</span><span class="p">(</span>
-            <span class="n">variables</span> <span class="ow">or</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CI</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">],</span> <span class="n">candidates</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variables&quot;</span><span class="p">)</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VALUE_COLUMNS</span><span class="p">)</span>
+        <span class="c1"># Show figure</span>
         <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="si">}</span><span class="s2">: Simulated number of cases (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> scenario)&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">fig_cols</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">tracker</span><span class="o">.</span><span class="n">change_dates</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_plot</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">variables</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">y_integer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">tracker</span><span class="o">.</span><span class="n">change_dates</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sim_df</span></div>
 
 <div class="viewcode-block" id="Scenario.get"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">):</span>
@@ -1012,6 +1052,26 @@
             <span class="n">bar_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h_values</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">df</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_rate</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Scenario.adjust_end"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.adjust_end">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adjust the last end dates of the registered scenarios, if necessary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            covsirphy.Scenario: self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The current last end dates</span>
+        <span class="n">current_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_obj</span><span class="p">(</span><span class="n">tracker</span><span class="o">.</span><span class="n">last_end_date</span><span class="p">())</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tracker</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tracker_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="c1"># Adjusted end date</span>
+        <span class="n">adjusted_str</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">current_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE_FORMAT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tracker_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">end_date</span><span class="o">=</span><span class="n">adjusted_str</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span> <span class="nf">_describe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y0_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1358,7 +1418,7 @@
 <div class="viewcode-block" id="Scenario.estimate_delay"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.estimate_delay">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oxcgrt_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="s2">&quot;Stringency_index&quot;</span><span class="p">,</span>
                        <span class="n">target</span><span class="o">=</span><span class="s2">&quot;Confirmed&quot;</span><span class="p">,</span> <span class="n">value_range</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Estimate the average day [days] between the indicator and the target.</span>
+<span class="sd">        Estimate the mode value of delay period [days] between the indicator and the target.</span>
 <span class="sd">        We assume that the indicator impact on the target value with delay.</span>
 
 <span class="sd">        Args:</span>
@@ -1374,7 +1434,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple(int, pandas.DataFrame):</span>
-<span class="sd">                - int: the estimated number of days of delay [day]</span>
+<span class="sd">                - int: the estimated number of days of delay [day] (mode value)</span>
 <span class="sd">                - pandas.DataFrame:</span>
 <span class="sd">                    Index</span>
 <span class="sd">                        reset index</span>
@@ -1400,8 +1460,11 @@
         <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Period Length&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Period Length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.99</span><span class="p">)]</span>
         <span class="k">if</span> <span class="n">value_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df_filtered</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Period Length&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">value_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-        <span class="n">delay_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">recovery_period</span><span class="p">()</span> <span class="k">if</span> <span class="n">df_filtered</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">df_filtered</span><span class="p">[</span><span class="s2">&quot;Period Length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">delay_days</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span></div>
+        <span class="c1"># Calculate representative value (mode)</span>
+        <span class="k">if</span> <span class="n">df_filtered</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">recovery_period</span><span class="p">(),</span> <span class="n">df</span><span class="p">)</span>
+        <span class="n">delay_period</span> <span class="o">=</span> <span class="n">df_filtered</span><span class="p">[</span><span class="s2">&quot;Period Length&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">delay_period</span><span class="p">),</span> <span class="n">df</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_fit_create_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">removed_cols</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1412,7 +1475,7 @@
 <span class="sd">            model (covsirphy.ModelBase): ODE model</span>
 <span class="sd">            name (str): scenario name</span>
 <span class="sd">            delay (int): delay period</span>
-<span class="sd">            removed_cols (list): list of variables to remove from X dataset</span>
+<span class="sd">            removed_cols (list[str]): list of variables to remove from X dataset</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple(pandas.DataFrame):</span>
@@ -1442,19 +1505,19 @@
         <span class="n">X_target</span> <span class="o">=</span> <span class="n">extras_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dates</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">X_target</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Scenario.fit"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oxcgrt_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Scenario.fit"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oxcgrt_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">removed_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Learn the relationship of ODE parameter values and delayed OxCGRT scores using Elastic Net regression,</span>
 <span class="sd">        assuming that OxCGRT scores will impact on ODE parameter values with delay.</span>
 <span class="sd">        Min-max scaling and Elastic net regression with parameter optimization and cross validation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset</span>
+<span class="sd">            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset, deprecated</span>
 <span class="sd">            name (str): scenario name</span>
 <span class="sd">            test_size (float): proportion of the test dataset of Elastic Net regression</span>
 <span class="sd">            seed (int): random seed when spliting the dataset to train/test data</span>
-<span class="sd">            delay (int): number of days of delay between policy measure and effect</span>
-<span class="sd">            on number of confirmed cases.</span>
+<span class="sd">            delay (int): delay period [days], please refer to Scenario.estimate_delay()</span>
+<span class="sd">            removed_cols (list[str] or None): list of variables to remove from X dataset or None (indicators used to estimate delay period)</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed</span>
@@ -1496,10 +1559,10 @@
         <span class="c1"># Set delay effect</span>
         <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">delay</span><span class="p">,</span> <span class="n">delay_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_delay</span><span class="p">(</span><span class="n">oxcgrt_data</span><span class="p">)</span>
-            <span class="n">removed_cols</span> <span class="o">=</span> <span class="n">delay_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">removed_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">delay_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">removed_cols</span> <span class="ow">or</span> <span class="p">[]))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_natural_int</span><span class="p">(</span><span class="n">delay</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;delay&quot;</span><span class="p">)</span>
-            <span class="n">removed_cols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">removed_cols</span> <span class="o">=</span> <span class="n">removed_cols</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="c1"># Create training/test dataset</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">X_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_create_data</span><span class="p">(</span>
@@ -1549,13 +1612,14 @@
             <span class="s2">&quot;delay&quot;</span><span class="p">:</span> <span class="n">delay</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="Scenario.predict"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Scenario.predict"><a class="viewcode-back" href="../../../covsirphy.analysis.html#covsirphy.Scenario.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Predict parameter values of the future phases using Elastic Net regression with OxCGRT scores,</span>
 <span class="sd">        assuming that OxCGRT scores will impact on ODE parameter values with delay.</span>
 <span class="sd">        New future phases will be added (over-written).</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            days (list[int]): list of days to predict or None (only the max value)</span>
 <span class="sd">            name (str): scenario name</span>
 
 <span class="sd">        Raises:</span>
@@ -1577,9 +1641,10 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">applymap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">4</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATE_FORMAT</span><span class="p">)</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;end_date&quot;</span>
-        <span class="n">phase_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="c1"># Select the last values</span>
-        <span class="n">phase_df</span> <span class="o">=</span> <span class="n">phase_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+        <span class="c1"># Days to predict</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="n">days</span> <span class="ow">or</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">X_target</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_list</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_target</span><span class="p">))),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;days&quot;</span><span class="p">)</span>
+        <span class="n">phase_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">days</span><span class="p">,</span> <span class="p">:]</span>
         <span class="c1"># Set new future phases</span>
         <span class="k">for</span> <span class="n">phase_dict</span> <span class="ow">in</span> <span class="n">phase_df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">phase_dict</span><span class="p">)</span>
@@ -1594,7 +1659,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            oxcgrt_data (covsirphy.OxCGRTData or None): OxCGRT dataset</span>
 <span class="sd">            name (str): scenario name</span>
-<span class="sd">            kwargs: the other arguments of Scenario.fit()</span>
+<span class="sd">            kwargs: the other arguments of Scenario.fit() and Scenario.predict()</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed</span>
@@ -1606,8 +1671,8 @@
 <span class="sd">        Note:</span>
 <span class="sd">            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">oxcgrt_data</span><span class="o">=</span><span class="n">oxcgrt_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">oxcgrt_data</span><span class="o">=</span><span class="n">oxcgrt_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">find_args</span><span class="p">(</span><span class="n">Scenario</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">find_args</span><span class="p">(</span><span class="n">Scenario</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span></div></div>
 </pre></div>
 

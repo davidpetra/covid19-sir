@@ -3,9 +3,9 @@
 
 import numpy as np
 import pandas as pd
+from covsirphy.util.error import deprecate
 from covsirphy.util.term import Term
 from covsirphy.phase.phase_unit import PhaseUnit
-from covsirphy.phase.sr_change import ChangeFinder
 
 
 class PhaseSeries(Term):
@@ -19,8 +19,8 @@ class PhaseSeries(Term):
     """
 
     def __init__(self, first_date, last_date, population):
-        self.first_date = self._ensure_date(first_date, "first_date")
-        self.last_date = self._ensure_date(last_date, "last_date")
+        self._first_date = self._ensure_date(first_date, "first_date")
+        self._last_date = self._ensure_date(last_date, "last_date")
         self.init_population = self._ensure_population(population)
         # List of PhaseUnit
         self._units = []
@@ -31,6 +31,20 @@ class PhaseSeries(Term):
 
     def __len__(self):
         return len([unit for unit in self._units if unit])
+
+    @property
+    def first_date(self):
+        """
+        str: the first date of the series, like 22Jan2020
+        """
+        return self._first_date
+
+    @property
+    def last_date(self):
+        """
+        str: the last date of the series, like 25May2020
+        """
+        return self._last_date
 
     def unit(self, phase="last"):
         """
@@ -49,7 +63,7 @@ class PhaseSeries(Term):
         if phase == "last":
             if self._units:
                 return self._units[-1]
-            pre_date = self.yesterday(self.first_date)
+            pre_date = self.yesterday(self._first_date)
             return PhaseUnit(pre_date, pre_date, self.init_population)
         num = self.str2num(phase)
         try:
@@ -69,7 +83,7 @@ class PhaseSeries(Term):
         """
         if include_past:
             self._units = []
-        self._units = [unit for unit in self._units if unit <= self.last_date]
+        self._units = [unit for unit in self._units if unit <= self._last_date]
         return self
 
     def _calc_end_date(self, start_date, end_date=None, days=None):
@@ -88,7 +102,7 @@ class PhaseSeries(Term):
             self._ensure_date_order(start_date, end_date, name="end_date")
             return end_date
         if days is None:
-            return self.last_date
+            return self._last_date
         return self.date_change(start_date, days=days - 1)
 
     def add(self, end_date=None, days=None, population=None, model=None, tau=None, **kwargs):
@@ -128,15 +142,15 @@ class PhaseSeries(Term):
         # Create PhaseUnit
         unit = PhaseUnit(start_date, end_date, population)
         # Add phase if the last date is not included
-        if self.last_date not in unit or unit <= self.last_date:
+        if self._last_date not in unit or unit <= self._last_date:
             unit.set_ode(model=model, tau=tau, **param_dict)
             self._units.append(unit)
             return self
         # Fill in the blank of past dates
-        filling = PhaseUnit(start_date, self.last_date, population)
+        filling = PhaseUnit(start_date, self._last_date, population)
         filling.set_ode(model=model, tau=tau, **param_dict)
         target = PhaseUnit(
-            self.tomorrow(self.last_date), end_date, population)
+            self.tomorrow(self._last_date), end_date, population)
         target.set_ode(model=model, tau=tau, **param_dict)
         # Add new phase
         self._units.extend([filling, target])
@@ -164,7 +178,7 @@ class PhaseSeries(Term):
             return self
         phase_pre = self.num2str(self.str2num(phase) - 1)
         unit_pre, unit_fol = self.unit(phase_pre), self.unit(phase)
-        if unit_pre <= self.last_date and unit_fol >= self.last_date:
+        if unit_pre <= self._last_date and unit_fol >= self._last_date:
             phase_next = self.num2str(self.str2num(phase) + 1)
             unit_next = self.unit(phase_next)
             model = unit_next.model
@@ -251,7 +265,7 @@ class PhaseSeries(Term):
         """
         return {
             self.num2str(phase_id): {
-                self.TENSE: self.PAST if unit <= self.last_date else self.FUTURE,
+                self.TENSE: self.PAST if unit <= self._last_date else self.FUTURE,
                 **unit.to_dict()
             }
             for (phase_id, unit) in enumerate(self._units) if unit
@@ -335,63 +349,25 @@ class PhaseSeries(Term):
                     f"The list of units does not a series of phases. Applied: {s}")
         return sorted_units
 
-    def trend(self, sr_df, **kwargs):
+    @deprecate("PhaseSeries.trend()", new="covsirphy.TrendDetector()")
+    def trend(self, **kwargs):
         """
-        Perform S-R trend analysis.
+        This was deprecated. Please use covsirphy.TrendDetector class and .add() method of PhaseSeries.
 
-        Args:
-            sr_df (pandas.DataFrame): susceptible and recovered records
-
-                Index
-                    Date (pd.TimeStamp): Observation date
-                Columns
-                    - Recovered (int): the number of recovered cases (> 0)
-                    - Susceptible (int): the number of susceptible cases
-                    - any other columns will be ignored
-            kwargs: keyword arguments of covsirphy.ChangeFinder()
-
-        Returns:
-            covsirphy.PhaseSeries: self
+        Raise:
+            NotImplementedError
         """
-        sta = self.date_obj(self.first_date)
-        end = self.date_obj(self.last_date)
-        sr_df = sr_df.loc[(sr_df.index >= sta) & (sr_df.index <= end), :]
-        # Find change points
-        finder = ChangeFinder(sr_df, **kwargs)
-        finder.run()
-        # Register phases
-        self.clear(include_past=True)
-        _, end_dates = finder.date_range()
-        [self.add(end_date=end_date) for end_date in end_dates]
-        return self
+        raise NotImplementedError
 
-    def trend_show(self, sr_df, area=None, **kwargs):
+    @deprecate("PhaseSeries.trend()", new="covsirphy.TrendDetector()")
+    def trend_show(self, **kwargs):
         """
-        Show S-R plane, indicating change points found with S-R trend analysis.
+        This was deprecated. Please use covsirphy.TrendDetector class.
 
-        Args:
-            sr_df (pandas.DataFrame): susceptible and recovered records
-
-                Index
-                    Date (pandas.TimeStamp): Observation date
-                Columns
-                    - Recovered (int): the number of recovered cases (> 0)
-                    - Susceptible (int): the number of susceptible cases
-                    - any other columns will be ignored
-            area (str or None): area name
-            kwargs: keyword arguments of covsirphy.trend_plot()
-
-        Returns:
-            covsirphy.PhaseSeries: self
+        Raise:
+            NotImplementedError
         """
-        area = area or self.UNKNOWN
-        sta = self.date_obj(self.first_date)
-        end = self.date_obj(self.last_date)
-        sr_df = sr_df.loc[(sr_df.index >= sta) & (sr_df.index <= end), :]
-        finder = ChangeFinder(sr_df)
-        change_dates = [
-            unit.start_date for unit in self._units[1:] if unit <= self.last_date]
-        finder.show(area=area, change_dates=change_dates, **kwargs)
+        raise NotImplementedError
 
     def simulate(self, record_df, y0_dict=None):
         """
@@ -402,7 +378,7 @@ class PhaseSeries(Term):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Confirmed (int): the number of confirmed cases
                     - Infected (int): the number of currently infected cases
                     - Fatal (int): the number of fatal cases
@@ -417,7 +393,7 @@ class PhaseSeries(Term):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Country (str): country/region name
                     - Province (str): province/prefecture/state name
                     - Variables of the model and dataset (int): Confirmed etc.
