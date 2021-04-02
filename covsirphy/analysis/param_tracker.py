@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import sklearn
 from covsirphy.util.error import UnExecutedError
 from covsirphy.util.argument import find_args
 from covsirphy.util.term import Term
-from covsirphy.visualization.trend_plot import trend_plot
+from covsirphy.trend.trend_detector import TrendDetector
+from covsirphy.trend.trend_plot import trend_plot
 from covsirphy.ode.mbase import ModelBase
-from covsirphy.phase.sr_change import ChangeFinder
 from covsirphy.phase.phase_unit import PhaseUnit
 from covsirphy.phase.phase_estimator import MPEstimator
 from covsirphy.phase.phase_series import PhaseSeries
@@ -34,21 +32,17 @@ class ParamTracker(Term):
         area (str or None): area name, like Japan/Tokyo, or empty string
         tau (int or None): tau value [min]
     """
-    METRICS_DICT = {
-        "MAPE": sklearn.metrics.mean_absolute_percentage_error,
-        "MAE": sklearn.metrics.mean_absolute_error,
-        "MSE": sklearn.metrics.mean_squared_error,
-        "MSLE": sklearn.metrics.mean_squared_log_error,
-        "RMSE": lambda x1, x2: sklearn.metrics.mean_squared_error(x1, x2, squared=False),
-        "RMSLE": lambda x1, x2: np.sqrt(sklearn.metrics.mean_squared_log_error(x1, x2)),
-    }
 
     def __init__(self, record_df, phase_series, area=None, tau=None):
-        self.record_df = self._ensure_dataframe(
-            record_df, name="record_df", columns=self.SUB_COLUMNS)
-        self._series = self._ensure_instance(
-            phase_series, PhaseSeries, name="phase_seres")
+        # Phase series
+        self._series = self._ensure_instance(phase_series, PhaseSeries, name="phase_series")
+        # Records
+        self._ensure_dataframe(record_df, name="record_df", columns=self.SUB_COLUMNS)
+        df = record_df.loc[record_df[self.DATE] >= self.date_obj(phase_series.first_date)]
+        self.record_df = df.loc[df[self.DATE] <= self.date_obj(phase_series.last_date)]
+        # Area name
         self.area = area or ""
+        # Tau value
         self.tau = self._ensure_tau(tau)
 
     def __len__(self):
@@ -91,18 +85,23 @@ class ParamTracker(Term):
         Args:
             force (bool): if True, change points will be over-written
             show_figure (bool): if True, show the result as a figure
-            kwargs: keyword arguments of covsirphy.ChangeFinder() and covsirphy.trend_plot()
+            kwargs: keyword arguments of covsirphy.TrendDetector(), .TrendDetector.sr() and .trend_plot()
 
         Returns:
             covsirphy.PhaseSeries
         """
-        sr_df = self.record_df.set_index(self.DATE).loc[:, [self.R, self.S]]
+        detector = TrendDetector(
+            data=self.record_df, area=self.area, **find_args(TrendDetector, **kwargs))
+        # Perform S-R trend analysis
+        detector.sr(**find_args(TrendDetector.sr, **kwargs))
+        # Register phases
         if force or not self._series:
-            trend_kwargs = find_args(ChangeFinder, **kwargs)
-            self._series.trend(sr_df=sr_df, **trend_kwargs)
+            self._series.clear(include_past=True)
+            _, end_dates = detector.dates()
+            [self._series.add(end_date=end_date) for end_date in end_dates]
+        # Show S-R plane
         if show_figure:
-            show_kwargs = find_args(trend_plot, **kwargs)
-            self._series.trend_show(sr_df=sr_df, area=self.area, **show_kwargs)
+            detector.show(**find_args(trend_plot, **kwargs))
         return self._series
 
     def _ensure_phase_setting(self):
@@ -440,7 +439,7 @@ class ParamTracker(Term):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Country (str): country/region name
                     - Province (str): province/prefecture/state name
                     - Variables of the model and dataset (int): Confirmed etc.
@@ -462,10 +461,10 @@ class ParamTracker(Term):
         Returns:
             tuple(pandas.DataFrame, pandas.DataFrame):
                 - actual (pandas.DataFrame):
-                    Index Date (pd.TimeStamp)
+                    Index Date (pd.Timestamp)
                     Columns variables defined by @variables
                 - simulated (pandas.DataFrame):
-                    Index Date (pd.TimeStamp)
+                    Index Date (pd.Timestamp)
                     Columns variables defined by @variables
         """
         record_df = self.record_df.copy().set_index(self.DATE)
@@ -481,7 +480,7 @@ class ParamTracker(Term):
         Evaluate accuracy of phase setting and parameter estimation of selected enabled phases.
 
         Args:
-            metrics (str): "MAPE", "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
+            metrics (str): "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             y0_dict(dict[str, float] or None): dictionary of initial values of variables
@@ -517,3 +516,12 @@ class ParamTracker(Term):
         if ignored_phases:
             self.enable(ignored_phases)
         return score
+
+    def last_end_date(self):
+        """
+        Return the last end date of the series.
+
+        Returns:
+            str: the last end date
+        """
+        return self._series.unit(phase="last").end_date
