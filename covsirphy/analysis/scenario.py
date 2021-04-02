@@ -12,9 +12,11 @@ from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
+from covsirphy.util.argument import find_args
 from covsirphy.util.error import deprecate, ScenarioNotFoundError, UnExecutedError
 from covsirphy.util.error import NotRegisteredMainError, NotRegisteredExtraError
 from covsirphy.util.error import NotInteractiveError
@@ -244,12 +246,39 @@ class Scenario(Term):
         self._data.switch_complement(whether=None, **kwargs)
         return self._data.show_complement()
 
+    def _convert_variables(self, abbr, candidates):
+        """
+        Convert abbreviated variable names to complete names.
+
+        Args:
+            abbr (list[str] or str or None): variable names or abbreviated names
+            candidates (list[str]): all candidates
+
+        Returns:
+            list[str]: complete names of variables
+
+        Note:
+            Selectable values of @abbr are as follows.
+            - None: return default list, ["Infected", "Recovered", "Fatal"] (changed in the future)
+            - list[str]: return the selected variables
+            - "all": the all available variables
+            - str: abbr, like "CIFR" (Confirmed/Infected/Fatal/Recovered), "CFR", "RC"
+        """
+        if abbr is None:
+            return [self.CI, self.F, self.R]
+        if abbr == "all":
+            return self._ensure_list(candidates, name="candidates")
+        abbr_dict = {"C": self.C, "I": self.CI, "F": self.F, "R": self.R, }
+        variables = list(abbr) if isinstance(abbr, str) else abbr
+        variables = [abbr_dict.get(v, v) for v in variables]
+        return self._ensure_list(variables, candidates=candidates, name="variables")
+
     def records(self, variables=None, **kwargs):
         """
         Return the records as a dataframe.
 
         Args:
-            variables (list[str] or str or None): list of variables, 'all', None (Infected/Fatal/Recovered)
+            variables (list[str] or str or None): variable names or abbreviated names
             kwargs: the other keyword arguments of Scenario.line_plot()
 
         Raises:
@@ -264,55 +293,51 @@ class Scenario(Term):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Columns set by @variables (int)
 
         Note:
             - Records with Recovered > 0 will be selected.
             - If complement was performed by Scenario.complement() or Scenario(auto_complement=True),
             The kind of complement will be added to the title of the figure.
-            - @variables can be selected from Susceptible/Confirmed/Infected/Fatal/Recovered.
+
+        Note:
+            Selectable values of @variables are as follows.
+            - None: return default list, ["Infected", "Recovered", "Fatal"] (changed in the future)
+            - list[str]: return the selected variables
+            - "all": the all available variables
+            - str: abbr, like "CIFR" (Confirmed/Infected/Fatal/Recovered), "CFR", "RC"
         """
         # Get necessary data for the variables
-        all_df = self._data.records_all()
-        if variables is None:
-            df = all_df.loc[:, [self.DATE, self.CI, self.F, self.R]]
-        elif variables == "all":
-            df = all_df.copy()
-        else:
-            self._ensure_list(variables, candidates=all_df.columns.tolist(), name="variables")
-            df = all_df.loc[:, [self.DATE, *variables]]
+        all_df = self._data.records_all().set_index(self.DATE)
+        variables = self._convert_variables(variables, all_df.columns.tolist())
+        df = all_df.loc[:, variables]
         # Figure
         if self._data.complemented:
             title = f"{self.area}: Cases over time\nwith {self._data.complemented}"
         else:
             title = f"{self.area}: Cases over time"
-        self.line_plot(
-            df=df.set_index(self.DATE), title=title, y_integer=True, **kwargs)
-        return df
+        self.line_plot(df=df, title=title, y_integer=True, **kwargs)
+        return df.reset_index()
 
     def records_diff(self, variables=None, window=7, **kwargs):
         """
         Return the number of daily new cases (the first discreate difference of records).
 
         Args:
-            variables (list[str] or str or None): list of variables, 'all', None (Infected/Fatal/Recovered)
+            variables (list[str] or str or None): variable names or abbreviated names (as the same as Scenario.records())
             window (int): window of moving average, >= 1
             kwargs: the other keyword arguments of Scenario.line_plot()
 
         Returns:
             pandas.DataFrame
                 Index
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                 Columns
                     - Confirmed (int): daily new cases of Confirmed, if calculated
                     - Infected (int):  daily new cases of Infected, if calculated
                     - Fatal (int):  daily new cases of Fatal, if calculated
                     - Recovered (int):  daily new cases of Recovered, if calculated
-
-        Note:
-            @variables will be selected from Confirmed, Infected, Fatal and Recovered.
-            If None was set as @variables, ["Confirmed", "Fatal", "Recovered"] will be used.
         """
         window = self._ensure_natural_int(window, name="window")
         df = self.records(variables=variables, show_figure=False).set_index(self.DATE)
@@ -331,7 +356,7 @@ class Scenario(Term):
         """
         data = copy.deepcopy(self._data)
         series = ParamTracker.create_series(
-            first_date=data.first_date, last_date=data.last_date, population=data.population)
+            first_date=data.first_date, last_date=data.today, population=data.population)
         tracker = ParamTracker(
             record_df=self._data.records(extras=False), phase_series=series, area=self.area, tau=self.tau)
         self._tracker_dict = {self.MAIN: tracker}
@@ -395,7 +420,7 @@ class Scenario(Term):
             tracker.add(
                 end_date=end_date, days=days, population=population, model=model, **kwargs)
         except ValueError:
-            last_date = tracker.series.unit("last").end_date
+            last_date = tracker.last_end_date()
             raise ValueError(
                 f'@end_date must be over {last_date}. However, {end_date} was applied.') from None
         self._tracker_dict[name] = tracker
@@ -591,19 +616,26 @@ class Scenario(Term):
         df = df.loc[:, columns]
         return df.dropna(how="all", axis=1).fillna(self.UNKNOWN)
 
-    def trend(self, force=True, name="Main", show_figure=True, filename=None, **kwargs):
+    def trend(self, min_size=None, force=True, name="Main", show_figure=True, filename=None, **kwargs):
         """
         Perform S-R trend analysis and set phases.
 
         Args:
+            min_size (int or None): minimum value of phase length [days] (over 2) or None (equal to max of 7 and delay period)
             force (bool): if True, change points will be over-written
             name (str): phase series name
             show_figure (bool): if True, show the result as a figure
             filename (str): filename of the figure, or None (display)
-            kwargs: keyword arguments of covsirphy.ChangeFinder() and covsirphy.trend_plot()
+            kwargs: keyword arguments of
+                - covsirphy.TrendDetector() and covsirphy.TrendDetector.sr()
+                - covsirphy.trend_plot()
+                - Scenario.estimate_delay()
 
         Returns:
             covsirphy.Scenario: self
+
+        Note:
+            If @min_size is None, this will be thw max value of 7 days and delay period calculated with .estimate_delay() method.
         """
         # Arguments
         if "n_points" in kwargs.keys():
@@ -621,13 +653,22 @@ class Scenario(Term):
             force = kwargs.pop("set_phases")
         except KeyError:
             pass
+        # Minimum size of phases
+        if min_size is None:
+            try:
+                delay, _ = self.estimate_delay(**find_args(self.estimate_delay, **kwargs))
+            except KeyError:
+                # Extra datasets are not registered
+                delay = 7
+            min_size = max(7, delay)
+        self._ensure_int_range(min_size, name="min_size", value_range=(2, None))
+        kwargs["min_size"] = min_size
         # S-R trend analysis
         tracker = self._tracker(name)
         if not self._interactive and filename is None:
             show_figure = False
         filename = None if self._interactive else filename
-        self[name] = tracker.trend(
-            force=force, show_figure=show_figure, filename=filename, **kwargs)
+        self[name] = tracker.trend(force=force, show_figure=show_figure, filename=filename, **kwargs)
         # Disable 0th phase, if necessary
         if not include_init_phase:
             self[name] = tracker.disable(phases=["0th"])
@@ -708,7 +749,7 @@ class Scenario(Term):
         Simulate ODE models with set/estimated parameter values and show it as a figure.
 
         Args:
-            variables (list[str] or None): variables to include, Infected/Fatal/Recovered when None
+            variables (list[str] or str or None): variable names or abbreviated names (as the same as Scenario.records())
             phases (list[str] or None): phases to shoe or None (all phases)
             name (str): phase series name. If 'Main', main PhaseSeries will be used
             y0_dict(dict[str, float] or None): dictionary of initial values of variables
@@ -719,10 +760,10 @@ class Scenario(Term):
                 Index
                     reset index
                 Columns
-                    - Date (pd.TimeStamp): Observation date
+                    - Date (pd.Timestamp): Observation date
                     - Country (str): country/region name
                     - Province (str): province/prefecture/state name
-                    - Variables of the model and dataset (int): Confirmed etc.
+                    - Variables of the main dataset (int): Confirmed etc.
         """
         tracker = copy.deepcopy(self._tracker(name))
         # Select phases
@@ -733,14 +774,14 @@ class Scenario(Term):
         try:
             sim_df = tracker.simulate(y0_dict=y0_dict)
         except UnExecutedError:
-            raise UnExecutedError(
-                "Scenario.trend() or Scenario.add(), and Scenario.estimate(model)") from None
-        # Show figure
+            raise UnExecutedError("Scenario.trend() or Scenario.add(), and Scenario.estimate(model)") from None
+        # Variables to show
         df = sim_df.set_index(self.DATE)
-        fig_cols = self._ensure_list(
-            variables or [self.CI, self.F, self.R], candidates=df.columns.tolist(), name="variables")
+        variables = self._convert_variables(variables, candidates=self.VALUE_COLUMNS)
+        # Show figure
         title = f"{self.area}: Simulated number of cases ({name} scenario)"
-        self.line_plot(df=df[fig_cols], title=title, y_integer=True, v=tracker.change_dates(), **kwargs)
+        self.line_plot(
+            df=df.loc[:, variables], title=title, y_integer=True, v=tracker.change_dates(), **kwargs)
         return sim_df
 
     def get(self, param, phase="last", name="Main"):
@@ -840,6 +881,26 @@ class Scenario(Term):
             bar_plot(df, title=title, h=h_values, filename=filename, ylabel=None)
             return df
         return self.history_rate(params=targets, name=name, **kwargs)
+
+    def adjust_end(self):
+        """
+        Adjust the last end dates of the registered scenarios, if necessary.
+
+        Returns:
+            covsirphy.Scenario: self
+        """
+        # The current last end dates
+        current_dict = {
+            name: self.date_obj(tracker.last_end_date())
+            for (name, tracker) in self._tracker_dict.items()}
+        # Adjusted end date
+        adjusted_str = max(current_dict.values()).strftime(self.DATE_FORMAT)
+        for (name, _) in self._tracker_dict.items():
+            try:
+                self.add(end_date=adjusted_str, name=name)
+            except ValueError:
+                pass
+        return self
 
     def _describe(self, y0_dict=None):
         """
@@ -1146,7 +1207,7 @@ class Scenario(Term):
         Evaluate accuracy of phase setting and parameter estimation of all enabled phases all some past days.
 
         Args:
-            metrics (str): "MAPE", "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
+            metrics (str): "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             past_days (int or None): how many past days to use in calculation, natural integer
@@ -1186,7 +1247,7 @@ class Scenario(Term):
     def estimate_delay(self, oxcgrt_data=None, indicator="Stringency_index",
                        target="Confirmed", value_range=(7, None)):
         """
-        Estimate the average day [days] between the indicator and the target.
+        Estimate the mode value of delay period [days] between the indicator and the target.
         We assume that the indicator impact on the target value with delay.
 
         Args:
@@ -1202,7 +1263,7 @@ class Scenario(Term):
 
         Returns:
             tuple(int, pandas.DataFrame):
-                - int: the estimated number of days of delay [day]
+                - int: the estimated number of days of delay [day] (mode value)
                 - pandas.DataFrame:
                     Index
                         reset index
@@ -1228,8 +1289,11 @@ class Scenario(Term):
         df_filtered = df.loc[df["Period Length"] < df["Period Length"].quantile(0.99)]
         if value_range[1] is not None:
             df_filtered = df_filtered.loc[df["Period Length"] < value_range[1]]
-        delay_days = self._data.recovery_period() if df_filtered.empty else int(df_filtered["Period Length"].mean())
-        return (delay_days, df)
+        # Calculate representative value (mode)
+        if df_filtered.empty:
+            return (self._data.recovery_period(), df)
+        delay_period = df_filtered["Period Length"].mode()[0]
+        return (int(delay_period), df)
 
     def _fit_create_data(self, model, name, delay, removed_cols):
         """
@@ -1240,7 +1304,7 @@ class Scenario(Term):
             model (covsirphy.ModelBase): ODE model
             name (str): scenario name
             delay (int): delay period
-            removed_cols (list): list of variables to remove from X dataset
+            removed_cols (list[str]): list of variables to remove from X dataset
 
         Returns:
             tuple(pandas.DataFrame):
@@ -1270,19 +1334,19 @@ class Scenario(Term):
         X_target = extras_df.loc[dates]
         return (X, y, X_target)
 
-    def fit(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None):
+    def fit(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None, removed_cols=None):
         """
         Learn the relationship of ODE parameter values and delayed OxCGRT scores using Elastic Net regression,
         assuming that OxCGRT scores will impact on ODE parameter values with delay.
         Min-max scaling and Elastic net regression with parameter optimization and cross validation.
 
         Args:
-            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
+            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset, deprecated
             name (str): scenario name
             test_size (float): proportion of the test dataset of Elastic Net regression
             seed (int): random seed when spliting the dataset to train/test data
-            delay (int): number of days of delay between policy measure and effect
-            on number of confirmed cases.
+            delay (int): delay period [days], please refer to Scenario.estimate_delay()
+            removed_cols (list[str] or None): list of variables to remove from X dataset or None (indicators used to estimate delay period)
 
         Raises:
             covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
@@ -1324,10 +1388,10 @@ class Scenario(Term):
         # Set delay effect
         if delay is None:
             delay, delay_df = self.estimate_delay(oxcgrt_data)
-            removed_cols = delay_df.columns.tolist()
+            removed_cols = list(set(delay_df.columns.tolist()) | set(removed_cols or []))
         else:
             delay = self._ensure_natural_int(delay, name="delay")
-            removed_cols = []
+            removed_cols = removed_cols or None
         # Create training/test dataset
         try:
             X, y, X_target = self._fit_create_data(
@@ -1366,131 +1430,10 @@ class Scenario(Term):
         mape_test_print = f"{mape_test_score:.3f}"
 
         score_test = "R2 Score: " + r2_test_print + ", MAPE Score: " + mape_test_print
-
-        # Return information regarding regression model
-        reg_output = pipeline.named_steps.regressor
-        print(f"parameters of Elastic Net: alpha={reg_output.alpha_}, l1_ration={reg_output.l1_ratio_}")
-
-        # Intercept and coefficients
-        intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
-        intercept_df.insert(0, "Intercept", None)
-        intercept_df["Intercept"] = reg_output.intercept_
-        # Return information
-        return {
-            **{k: type(v) for (k, v) in steps},
-            "alpha": reg_output.alpha_,
-            "l1_ratio": reg_output.l1_ratio_,
-            "score_train": score_train,
-            "score_test": score_test,
-            "X_train": X_train,
-            "y_train": y_train,
-            "X_test": X_test,
-            "y_test": y_test,
-            "X_target": X_target,
-            "intercept": intercept_df,
-            "coef": intercept_df,
-            "delay": delay
-        }
-    
-    def fit_modified(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None):
-        """
-        Same as Scenario.fit(), but with parameter tuning (alpha & l1_ratio)
-
-        Args:
-            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
-            name (str): scenario name
-            test_size (float): proportion of the test dataset of Elastic Net regression
-            seed (int): random seed when spliting the dataset to train/test data
-            delay (int): number of days of delay between policy measure and effect
-            on number of confirmed cases.
-
-        Raises:
-            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
-
-        Returns:
-            dict(str, object):
-                - scaler (object): scaler class
-                - regressor (object): regressor class
-                - alpha (float): alpha value used in Elastic Net regression
-                - l1_ratio (float): l1_ratio value used in Elastic Net regression
-                - score_train (float): determination coefficient of train dataset
-                - score_test (float): determination coefficient of test dataset
-                - X_train (numpy.array): X_train
-                - y_train (numpy.array): y_train
-                - X_test (numpy.array): X_test
-                - y_test (numpy.array): y_test
-                - X_target (numpy.array): X_target
-                - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-                - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-                - delay (int): number of days of delay between policy measure and effect
-                    on number of confirmed cases.
-
-        Note:
-            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
-        """
-        warnings.simplefilter("ignore", category=ConvergenceWarning)
-        # Register OxCGRT data
-        if oxcgrt_data is not None:
-            warnings.warn(
-                "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
-                DeprecationWarning, stacklevel=1)
-            self.register(extras=[oxcgrt_data])
-        # ODE model
-        model = self._tracker(name).last_model
-        if model is None:
-            raise UnExecutedError(
-                "Scenario.estimate() or Scenario.add()",
-                message=f", specifying @model (covsirphy.SIRF etc.) and @name='{name}'.")
-        # Set delay effect
-        if delay is None:
-            delay, delay_df = self.estimate_delay(oxcgrt_data)
-            removed_cols = delay_df.columns.tolist()
-        else:
-            delay = self._ensure_natural_int(delay, name="delay")
-            removed_cols = []
-        # Create training/test dataset
-        try:
-            X, y, X_target = self._fit_create_data(
-                model=model, name=name, delay=delay, removed_cols=removed_cols)
-        except NotRegisteredExtraError:
-            raise NotRegisteredExtraError(
-                "Scenario.register(jhu_data, population_data, extras=[...])",
-                message="with extra datasets") from None
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
-        # Create pipeline for learning
-        cv = linear_model.MultiTaskElasticNetCV(
-            alphas=[0.01, 0.1, 1, 10, 50, 90, 100],
-            l1_ratio=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            cv=5, n_jobs=-1)
-        steps = [
-            ("scaler", MinMaxScaler()),
-            ("regressor", cv),
-        ]
-        pipeline = Pipeline(steps=steps)
-        pipeline.fit(X_train, y_train)
-        # Register the pipeline and X-target for prediction
-        self._lm_dict[name] = (pipeline, X_target)
-
-        # Get train score
-        r2_train_score = r2_score(pipeline.predict(X_train), y_train)
-        r2_train_print = f"{r2_train_score:.3f}"
-        mape_train_score = mean_absolute_percentage_error(pipeline.predict(X_train), y_train)
-        mape_train_print = f"{mape_train_score:.3f}"
-
-        score_train = "R2 Score: " + r2_train_print + ", MAPE Score: " + mape_train_print
         
-        # Get test score
-        r2_test_score = r2_score(pipeline.predict(X_test), y_test)
-        r2_test_print = f"{r2_test_score:.3f}"
-        mape_test_score = mean_absolute_percentage_error(pipeline.predict(X_test), y_test)
-        mape_test_print = f"{mape_test_score:.3f}"
-
-        score_test = "R2 Score: " + r2_test_print + ", MAPE Score: " + mape_test_print
-
         # Return information regarding regression model
         reg_output = pipeline.named_steps.regressor
-        print(f"parameters of Elastic Net: alpha={reg_output.alpha_}, l1_ration={reg_output.l1_ratio_}")
-
+        
         # Intercept and coefficients
         intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
         intercept_df.insert(0, "Intercept", None)
@@ -1512,15 +1455,14 @@ class Scenario(Term):
             "delay": delay
         }
 
-    
-
-    def predict(self, name="Main"):
+    def predict(self, days=None, name="Main"):
         """
         Predict parameter values of the future phases using Elastic Net regression with OxCGRT scores,
         assuming that OxCGRT scores will impact on ODE parameter values with delay.
         New future phases will be added (over-written).
 
         Args:
+            days (list[int]): list of days to predict or None (only the max value)
             name (str): scenario name
 
         Raises:
@@ -1542,9 +1484,10 @@ class Scenario(Term):
         df = df.applymap(lambda x: np.around(x, 4 - int(floor(log10(abs(x)))) - 1))
         df.index = [date.strftime(self.DATE_FORMAT) for date in df.index]
         df.index.name = "end_date"
-        phase_df = df.drop_duplicates(keep="last").reset_index()
-        # Select the last values
-        phase_df = phase_df.iloc[[-1], :]
+        # Days to predict
+        days = days or [len(X_target) - 1]
+        self._ensure_list(days, candidates=list(range(len(X_target))), name="days")
+        phase_df = df.reset_index().loc[days, :]
         # Set new future phases
         for phase_dict in phase_df.to_dict(orient="records"):
             self.add(name=name, **phase_dict)
@@ -1559,7 +1502,7 @@ class Scenario(Term):
         Args:
             oxcgrt_data (covsirphy.OxCGRTData or None): OxCGRT dataset
             name (str): scenario name
-            kwargs: the other arguments of Scenario.fit()
+            kwargs: the other arguments of Scenario.fit() and Scenario.predict()
 
         Raises:
             covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
@@ -1571,6 +1514,6 @@ class Scenario(Term):
         Note:
             @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
         """
-        self.fit(oxcgrt_data=oxcgrt_data, name=name, **kwargs)
-        self.predict(name=name)
+        self.fit(oxcgrt_data=oxcgrt_data, name=name, **find_args(Scenario.fit, **kwargs))
+        self.predict(name=name, **find_args(Scenario.predict, **kwargs))
         return self
