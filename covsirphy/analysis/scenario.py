@@ -8,6 +8,9 @@ import warnings
 import sys
 import numpy as np
 import pandas as pd
+import optuna
+import lightgbm as lgb
+import sklearn.metrics
 from sklearn.model_selection import train_test_split
 from sklearn import linear_model
 from sklearn.exceptions import ConvergenceWarning
@@ -1517,3 +1520,216 @@ class Scenario(Term):
         self.fit(oxcgrt_data=oxcgrt_data, name=name, **find_args(Scenario.fit, **kwargs))
         self.predict(name=name, **find_args(Scenario.predict, **kwargs))
         return self
+
+    def fit_predict_lgbm(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None, removed_cols=None, days=None):
+        """
+        Learn the relationship of ODE parameter values and delayed OxCGRT scores using LightGBM regression,
+        assuming that OxCGRT scores will impact on ODE parameter values with delay.
+        Min-max scaling and Elastic net regression with parameter optimization and cross validation.
+
+        Args:
+            oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset, deprecated
+            name (str): scenario name
+            test_size (float): proportion of the test dataset of Elastic Net regression
+            seed (int): random seed when spliting the dataset to train/test data
+            delay (int): delay period [days], please refer to Scenario.estimate_delay()
+            removed_cols (list[str] or None): list of variables to remove from X dataset or None (indicators used to estimate delay period)
+
+        Raises:
+            covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
+
+        Returns:
+            dict(str, object):
+                - scaler (object): scaler class
+                - regressor (object): regressor class
+                - alpha (float): alpha value used in Elastic Net regression
+                - l1_ratio (float): l1_ratio value used in Elastic Net regression
+                - score_train (float): determination coefficient of train dataset
+                - score_test (float): determination coefficient of test dataset
+                - X_train (numpy.array): X_train
+                - y_train (numpy.array): y_train
+                - X_test (numpy.array): X_test
+                - y_test (numpy.array): y_test
+                - X_target (numpy.array): X_target
+                - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
+                - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
+                - delay (int): number of days of delay between policy measure and effect
+                  on number of confirmed cases.
+
+        Note:
+            @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
+        """
+        warnings.simplefilter("ignore", category=ConvergenceWarning)
+        # Register OxCGRT data
+        if oxcgrt_data is not None:
+            warnings.warn(
+                "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
+                DeprecationWarning, stacklevel=1)
+            self.register(extras=[oxcgrt_data])
+        # ODE model
+        model = self._tracker(name).last_model
+        if model is None:
+            raise UnExecutedError(
+                "Scenario.estimate() or Scenario.add()",
+                message=f", specifying @model (covsirphy.SIRF etc.) and @name='{name}'.")
+        # Set delay effect
+        if delay is None:
+            delay, delay_df = self.estimate_delay(oxcgrt_data)
+            removed_cols = list(set(delay_df.columns.tolist()) | set(removed_cols or []))
+        else:
+            delay = self._ensure_natural_int(delay, name="delay")
+            removed_cols = removed_cols or None
+        # Create training/test dataset
+        try:
+            X, y, X_target = self._fit_create_data(
+                model=model, name=name, delay=delay, removed_cols=removed_cols)
+        except NotRegisteredExtraError:
+            raise NotRegisteredExtraError(
+                "Scenario.register(jhu_data, population_data, extras=[...])",
+                message="with extra datasets") from None
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
+        
+        # Make train dataset for Light GBM
+        y_rho = y_train['rho'].to_list()
+        y_train_rho = pd.Dataframe(y_rho)
+
+        y_sigma = y_train['sigma'].to_list()
+        y_train_sigma = pd.Dataframe(y_sigma)
+
+        y_kappa = y_train['kappa'].to_list()
+        y_train_kappa = pd.Dataframe(y_kappa)
+
+        # Make test dataset for Light GBM
+        y_rho = y_test['rho'].to_list()
+        y_test_rho = pd.Dataframe(y_rho)
+
+        y_sigma = y_test['sigma'].to_list()
+        y_test_sigma = pd.Dataframe(y_sigma)
+
+        y_kappa = y_test['kappa'].to_list()
+        y_test_kappa = pd.Dataframe(y_kappa)
+
+        # Setting up parameter
+        def objective_rho(trial):
+            train_rho = lgb.Dataset(X_train, y_train_rho)
+            valid_rho = lgb.Dataset(X_test, y_test_rho, reference=train_rho)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : trial.suggest_int("num_leaves", 2, 16),
+                "max_depth"         : trial.suggest_int("max_depth", 2, 4),
+                "learning_rate"     : trial.suggest_float("learning_rate", 0.001, 0.1),
+                "feature_fraction"  : trial.suggest_float("feature_fraction", 0.5, 1.0),
+                "bagging_fraction"  : trial.suggest_float("bagging_fraction", 0.5, 1.0),
+                "bagging_freq"      : trial.suggest_int("bagging_freq", 1, 7),
+                "min_child_samples" : trial.suggest_int("min_child_samples", 5, 20),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_rho, valid_sets=valid_rho, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(X_test)
+            pred_labels = np.rint(preds)
+            accuracy = sklearn.metrics.accuracy_score(y_test_rho, pred_labels)
+            return accuracy
+
+
+        def objective_sigma(trial):
+            train_sigma = lgb.Dataset(X_train, y_train_sigma)
+            valid_sigma = lgb.Dataset(X_test, y_test_sigma, reference=train_sigma)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : trial.suggest_int("num_leaves", 2, 16),
+                "max_depth"         : trial.suggest_int("max_depth", 2, 4),
+                "learning_rate"     : trial.suggest_float("learning_rate", 0.001, 0.1),
+                "feature_fraction"  : trial.suggest_float("feature_fraction", 0.5, 1.0),
+                "bagging_fraction"  : trial.suggest_float("bagging_fraction", 0.5, 1.0),
+                "bagging_freq"      : trial.suggest_int("bagging_freq", 1, 7),
+                "min_child_samples" : trial.suggest_int("min_child_samples", 5, 20),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_sigma, valid_sets=valid_sigma, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(X_test)
+            pred_labels = np.rint(preds)
+            accuracy = sklearn.metrics.accuracy_score(y_test_sigma, pred_labels)
+            return accuracy
+
+
+        def objective_kappa(trial):
+            train_kappa = lgb.Dataset(X_train, y_train_kappa)
+            valid_kappa = lgb.Dataset(X_test, y_test_kappa, reference=train_kappa)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : trial.suggest_int("num_leaves", 2, 16),
+                "max_depth"         : trial.suggest_int("max_depth", 2, 4),
+                "learning_rate"     : trial.suggest_float("learning_rate", 0.001, 0.1),
+                "feature_fraction"  : trial.suggest_float("feature_fraction", 0.5, 1.0),
+                "bagging_fraction"  : trial.suggest_float("bagging_fraction", 0.5, 1.0),
+                "bagging_freq"      : trial.suggest_int("bagging_freq", 1, 7),
+                "min_child_samples" : trial.suggest_int("min_child_samples", 5, 20),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_kappa, valid_sets=valid_kappa, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(X_test)
+            pred_labels = np.rint(preds)
+            accuracy = sklearn.metrics.accuracy_score(y_test_kappa, pred_labels)
+            return accuracy
+
+        # Optuna Rho Parameter Tuning
+        print("- Optuna Rho Parameter Tuning -")
+        study_rho = optuna.create_study(direction="maximize")
+        study_rho.optimize(objective_rho, n_trials=100)
+
+        print("Number of finished trials: {}".format(len(study_rho.trials)))
+
+        print("Best trial:")
+        trial_rho = study_rho.best_trial
+
+        print("  Value: {}".format(trial_rho.value))
+
+        print("  Params: ")
+        for key, value in trial_rho.params.items():
+            print("    {}: {}".format(key, value))
+
+
+        # Optuna Sigma Parameter Tuning
+        print("- Optuna Rho Parameter Tuning -")
+        study_sigma = optuna.create_study(direction="maximize")
+        study_sigma.optimize(objective_rho, n_trials=100)
+
+        print("Number of finished trials: {}".format(len(study_sigma.trials)))
+
+        print("Best trial:")
+        trial_sigma = study_sigma.best_trial
+
+        print("  Value: {}".format(trial_sigma.value))
+
+        print("  Params: ")
+        for key, value in trial_sigma.params.items():
+            print("    {}: {}".format(key, value))
+
+
+        # Optuna Kappa Parameter Tuning
+        print("- Optuna Rho Parameter Tuning -")
+        study_kappa = optuna.create_study(direction="maximize")
+        study_kappa.optimize(objective_rho, n_trials=100)
+
+        print("Number of finished trials: {}".format(len(study_kappa.trials)))
+
+        print("Best trial:")
+        trial_kappa = study_sigma.best_trial
+
+        print("  Value: {}".format(trial_kappa.value))
+
+        print("  Params: ")
+        for key, value in trial_kappa.params.items():
+            print("    {}: {}".format(key, value))
