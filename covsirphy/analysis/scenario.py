@@ -1591,23 +1591,23 @@ class Scenario(Term):
         
         # Make train dataset for Light GBM
         y_rho = y_train['rho'].to_list()
-        y_train_rho = pd.Dataframe(y_rho)
+        y_train_rho = pd.DataFrame(y_rho)
 
         y_sigma = y_train['sigma'].to_list()
-        y_train_sigma = pd.Dataframe(y_sigma)
+        y_train_sigma = pd.DataFrame(y_sigma)
 
         y_kappa = y_train['kappa'].to_list()
-        y_train_kappa = pd.Dataframe(y_kappa)
+        y_train_kappa = pd.DataFrame(y_kappa)
 
         # Make test dataset for Light GBM
         y_rho = y_test['rho'].to_list()
-        y_test_rho = pd.Dataframe(y_rho)
+        y_test_rho = pd.DataFrame(y_rho)
 
         y_sigma = y_test['sigma'].to_list()
-        y_test_sigma = pd.Dataframe(y_sigma)
+        y_test_sigma = pd.DataFrame(y_sigma)
 
         y_kappa = y_test['kappa'].to_list()
-        y_test_kappa = pd.Dataframe(y_kappa)
+        y_test_kappa = pd.DataFrame(y_kappa)
 
         # Setting up parameter
         def objective_rho(trial):
@@ -1831,7 +1831,7 @@ class Scenario(Term):
         predicted_kappa = predicted_kappa.tolist()
 
 
-        predicted_parameters = pd.Dataframe(list(zip(predicted_rho, predicted_sigma, predicted_kappa)))
+        predicted_parameters = pd.DataFrame(list(zip(predicted_rho, predicted_sigma, predicted_kappa)))
         predicted_parameters = predicted_parameters.to_numpy()
 
 
