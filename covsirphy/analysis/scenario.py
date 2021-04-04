@@ -1764,7 +1764,7 @@ class Scenario(Term):
                 "verbosity"         : 0
             }
 
-            gbm = lgb.train(params, train_rho, valid_sets=valid_kappa, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            gbm = lgb.train(params, train_rho, valid_sets=valid_rho, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
             preds = gbm.predict(dataPred)
             return preds
 
