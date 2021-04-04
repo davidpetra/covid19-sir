@@ -1684,6 +1684,11 @@ class Scenario(Term):
             accuracy = sklearn.metrics.accuracy_score(y_test_kappa, pred_labels)
             return accuracy
 
+        # Make list of trained parameter
+        trained_rho = dict()
+        trained_sigma = dict()
+        trained_kappa = dict()
+
         # Optuna Rho Parameter Tuning
         print("- Optuna Rho Parameter Tuning -")
         study_rho = optuna.create_study(direction="maximize")
@@ -1699,10 +1704,11 @@ class Scenario(Term):
         print("  Params: ")
         for key, value in trial_rho.params.items():
             print("    {}: {}".format(key, value))
+            trained_rho[key]=value
 
 
         # Optuna Sigma Parameter Tuning
-        print("- Optuna Rho Parameter Tuning -")
+        print("- Optuna Sigma Parameter Tuning -")
         study_sigma = optuna.create_study(direction="maximize")
         study_sigma.optimize(objective_rho, n_trials=100)
 
@@ -1716,20 +1722,149 @@ class Scenario(Term):
         print("  Params: ")
         for key, value in trial_sigma.params.items():
             print("    {}: {}".format(key, value))
+            trained_sigma[key]=value
 
 
         # Optuna Kappa Parameter Tuning
-        print("- Optuna Rho Parameter Tuning -")
+        print("- Optuna Kappa Parameter Tuning -")
         study_kappa = optuna.create_study(direction="maximize")
         study_kappa.optimize(objective_rho, n_trials=100)
 
         print("Number of finished trials: {}".format(len(study_kappa.trials)))
 
         print("Best trial:")
-        trial_kappa = study_sigma.best_trial
+        trial_kappa = study_kappa.best_trial
 
         print("  Value: {}".format(trial_kappa.value))
 
         print("  Params: ")
         for key, value in trial_kappa.params.items():
             print("    {}: {}".format(key, value))
+            trained_kappa[key]=value
+
+        
+        # Now for predicting parameters
+        def objective_rho_predict(paramsDict, dataPred):
+            parameters = paramsDict.copy()
+
+            train_rho = lgb.Dataset(X_train, y_train_rho)
+            valid_rho = lgb.Dataset(X_test, y_test_rho, reference=train_rho)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : int(parameters["num_leaves"]),
+                "max_depth"         : int(parameters["max_depth"]),
+                "learning_rate"     : float(parameters["learning_rate"]),
+                "feature_fraction"  : float(parameters["feature_fraction"]),
+                "bagging_fraction"  : float(parameters["bagging_fraction"]),
+                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "min_child_samples" : int(parameters["min_child_samples"]),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_rho, valid_sets=valid_kappa, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(dataPred)
+            return preds
+
+
+        def objective_sigma_predict(paramsDict, dataPred):
+            parameters = paramsDict.copy()
+
+            train_sigma = lgb.Dataset(X_train, y_train_sigma)
+            valid_sigma = lgb.Dataset(X_test, y_test_sigma, reference=train_sigma)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : int(parameters["num_leaves"]),
+                "max_depth"         : int(parameters["max_depth"]),
+                "learning_rate"     : float(parameters["learning_rate"]),
+                "feature_fraction"  : float(parameters["feature_fraction"]),
+                "bagging_fraction"  : float(parameters["bagging_fraction"]),
+                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "min_child_samples" : int(parameters["min_child_samples"]),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_sigma, valid_sets=valid_sigma, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(dataPred)
+            return preds
+
+        def objective_kappa_predict(paramsDict, dataPred):
+            parameters = paramsDict.copy()
+
+            train_kappa = lgb.Dataset(X_train, y_train_kappa)
+            valid_kappa = lgb.Dataset(X_test, y_test_kappa, reference=train_kappa)
+            
+            params = {
+                "objective"         : "regression",
+                "metric"            : "mape",
+                "boosting_type"     : "gbdt",
+                "num_leaves"        : int(parameters["num_leaves"]),
+                "max_depth"         : int(parameters["max_depth"]),
+                "learning_rate"     : float(parameters["learning_rate"]),
+                "feature_fraction"  : float(parameters["feature_fraction"]),
+                "bagging_fraction"  : float(parameters["bagging_fraction"]),
+                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "min_child_samples" : int(parameters["min_child_samples"]),
+                "verbosity"         : 0
+            }
+
+            gbm = lgb.train(params, train_kappa, valid_sets=valid_kappa, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
+            preds = gbm.predict(dataPred)
+            return preds
+
+
+        print("- Predict rho -")
+        predicted_rho = objective_rho_predict(trained_rho, X_target)
+        predicted_rho = predicted_rho.tolist()
+
+        print("- Predict sigma -")
+        predicted_sigma = objective_sigma_predict(trained_sigma, X_target)
+        predicted_sigma = predicted_sigma.tolist()
+
+        print("- Predict kappa -")
+        predicted_kappa = objective_kappa_predict(trained_kappa, X_target)
+        predicted_kappa = predicted_kappa.tolist()
+
+
+        predicted_parameters = pd.Dataframe(list(zip(predicted_rho, predicted_sigma, predicted_kappa)))
+        predicted_parameters = predicted_parameters.to_numpy()
+
+
+        # Scoring
+        print("- Score rho -")
+        rho_score = dict()
+        rho_train_score = objective_rho_predict(trained_rho, X_test)
+        rho_score['MAPE'] = mean_absolute_percentage_error(y_test_rho, rho_train_score)
+        rho_score['R2'] = r2_score(y_test_rho, rho_train_score)
+
+        print("- Score sigma -")
+        sigma_score = dict()
+        sigma_train_score = objective_sigma_predict(trained_sigma, X_test)
+        sigma_score['MAPE'] = mean_absolute_percentage_error(y_test_sigma, sigma_train_score)
+        sigma_score['R2'] = r2_score(y_test_sigma, sigma_train_score)
+
+        print("- Score kappa -")
+        kappa_score = dict()
+        kappa_train_score = objective_kappa_predict(trained_kappa, X_test)
+        kappa_score['MAPE'] = mean_absolute_percentage_error(y_test_kappa, kappa_train_score)
+        kappa_score['R2'] = r2_score(y_test_kappa, kappa_train_score)
+
+
+        # PREDICT
+        df = pd.DataFrame(predicted_parameters, index=X_target.index, columns=model.PARAMETERS)
+        df = df.applymap(lambda x: np.around(x, 4 - int(floor(log10(abs(x)))) - 1))
+        df.index = [date.strftime(self.DATE_FORMAT) for date in df.index]
+        df.index.name = "end_date"
+        # Days to predict
+        days = days or [len(X_target) - 1]
+        self._ensure_list(days, candidates=list(range(len(X_target))), name="days")
+        phase_df = df.reset_index().loc[days, :]
+        # Set new future phases
+        for phase_dict in phase_df.to_dict(orient="records"):
+            self.add(name=name, **phase_dict)
+        return self, rho_score, trained_rho, sigma_score, trained_sigma, kappa_score, trained_kappa
