@@ -1759,7 +1759,7 @@ class Scenario(Term):
                 "learning_rate"     : float(parameters["learning_rate"]),
                 "feature_fraction"  : float(parameters["feature_fraction"]),
                 "bagging_fraction"  : float(parameters["bagging_fraction"]),
-                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "bagging_freq"      : int(parameters["bagging_freq"]),
                 "min_child_samples" : int(parameters["min_child_samples"]),
                 "verbosity"         : 0
             }
@@ -1784,7 +1784,7 @@ class Scenario(Term):
                 "learning_rate"     : float(parameters["learning_rate"]),
                 "feature_fraction"  : float(parameters["feature_fraction"]),
                 "bagging_fraction"  : float(parameters["bagging_fraction"]),
-                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "bagging_freq"      : int(parameters["bagging_freq"]),
                 "min_child_samples" : int(parameters["min_child_samples"]),
                 "verbosity"         : 0
             }
@@ -1808,7 +1808,7 @@ class Scenario(Term):
                 "learning_rate"     : float(parameters["learning_rate"]),
                 "feature_fraction"  : float(parameters["feature_fraction"]),
                 "bagging_fraction"  : float(parameters["bagging_fraction"]),
-                "bagging_freq"      : float(parameters["bagging_freq"]),
+                "bagging_freq"      : int(parameters["bagging_freq"]),
                 "min_child_samples" : int(parameters["min_child_samples"]),
                 "verbosity"         : 0
             }
