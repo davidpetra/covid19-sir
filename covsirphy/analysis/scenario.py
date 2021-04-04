@@ -1631,7 +1631,7 @@ class Scenario(Term):
             gbm = lgb.train(params, train_rho, valid_sets=valid_rho, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
             preds = gbm.predict(X_test)
             pred_labels = np.rint(preds)
-            accuracy = sklearn.metrics.accuracy_score(y_test_rho, pred_labels)
+            accuracy = mean_absolute_percentage_error(y_test_rho, pred_labels)
             return accuracy
 
 
@@ -1656,7 +1656,7 @@ class Scenario(Term):
             gbm = lgb.train(params, train_sigma, valid_sets=valid_sigma, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
             preds = gbm.predict(X_test)
             pred_labels = np.rint(preds)
-            accuracy = sklearn.metrics.accuracy_score(y_test_sigma, pred_labels)
+            accuracy = mean_absolute_percentage_error(y_test_sigma, pred_labels)
             return accuracy
 
 
@@ -1681,7 +1681,7 @@ class Scenario(Term):
             gbm = lgb.train(params, train_kappa, valid_sets=valid_kappa, num_boost_round=100 ,verbose_eval=100, early_stopping_rounds=100)
             preds = gbm.predict(X_test)
             pred_labels = np.rint(preds)
-            accuracy = sklearn.metrics.accuracy_score(y_test_kappa, pred_labels)
+            accuracy = mean_absolute_percentage_error(y_test_kappa, pred_labels)
             return accuracy
 
         # Make list of trained parameter
