@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.18.0-alpha
+                2.19.0
               </div>
             
           
@@ -108,6 +108,7 @@
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.cleaning.html">covsirphy.cleaning package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.ode.html">covsirphy.ode package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.phase.html">covsirphy.phase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="covsirphy.regression.html">covsirphy.regression package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.simulation.html">covsirphy.simulation package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.trend.html">covsirphy.trend package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.util.html">covsirphy.util package</a></li>
@@ -955,7 +956,7 @@ Cleaning method is defined by CountryData._cleaning() method.</p>
 
 <dl class="py method">
 <dt id="covsirphy.DataHandler.estimate_delay">
-<code class="sig-name descname"><span class="pre">estimate_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Period</span> <span class="pre">Length'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/data_handler.html#DataHandler.estimate_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.DataHandler.estimate_delay" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">estimate_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_difference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Period</span> <span class="pre">Length'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/data_handler.html#DataHandler.estimate_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.DataHandler.estimate_delay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the average day [days] between the indicator and the target.
 We assume that the indicator impact on the target value with delay.
 All results will be returned with a dataframe.</p>
@@ -964,6 +965,8 @@ All results will be returned with a dataframe.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>indicator</strong> (<em>str</em>) – indicator name, a column of any registered datasets</p></li>
 <li><p><strong>target</strong> (<em>str</em>) – target name, a column of any registered datasets</p></li>
+<li><p><strong>min_size</strong> (<em>int</em>) – minimum size of the delay period</p></li>
+<li><p><strong>use_difference</strong> (<em>bool</em>) – if True, use first discrete difference of target</p></li>
 <li><p><strong>delay_name</strong> (<em>str</em>) – column name of delay in the output dataframe</p></li>
 </ul>
 </dd>
@@ -1666,10 +1669,10 @@ World Bank Group (2020), World Bank Open Data, <a class="reference external" hre
 
 <dl class="py method">
 <dt id="covsirphy.Estimator.run">
-<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_n_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.98,</span> <span class="pre">1.02)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/simulation/estimator.html#Estimator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Estimator.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_n_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.99,</span> <span class="pre">1.01)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/simulation/estimator.html#Estimator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Estimator.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run optimization.
 If the result satisfied the following conditions, optimization ends.
-- RMSLE score did not change in the last &#64;tail_n iterations.
+- Score did not change in the last &#64;tail_n iterations.
 - Monotonic increasing variables increases monotonically.
 - Predicted values are in the allowance when each actual value shows max value.</p>
 <dl class="field-list simple">
@@ -1678,21 +1681,27 @@ If the result satisfied the following conditions, optimization ends.
 <li><p><strong>timeout</strong> (<em>int</em>) – timeout of optimization</p></li>
 <li><p><strong>reset_n_max</strong> (<em>int</em>) – if study was reset &#64;reset_n_max times, will not be reset anymore</p></li>
 <li><p><strong>timeout_iteration</strong> (<em>int</em>) – time-out of one iteration</p></li>
-<li><p><strong>tail_n</strong> (<em>int</em>) – the number of iterations to decide whether RMSLE score did not change for the last iterations</p></li>
+<li><p><strong>tail_n</strong> (<em>int</em>) – the number of iterations to decide whether score did not change for the last iterations</p></li>
 <li><p><strong>allowance</strong> (<em>tuple</em><em>(</em><em>float</em><em>, </em><em>float</em><em>)</em>) – the allowance of the predicted value</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em> or </em><em>None</em>) – random seed of hyperparameter optimization</p></li>
 <li><p><strong>pruner</strong> (<em>str</em>) – hyperband, median, threshold or percentile</p></li>
 <li><p><strong>upper</strong> (<em>float</em>) – works for “threshold” pruner,
-intermediate RMSLE score is larger than this value, it prunes</p></li>
+intermediate score is larger than this value, it prunes</p></li>
 <li><p><strong>percentile</strong> (<em>float</em>) – works for “Percentile” pruner,
 the best intermediate value is in the bottom percentile among trials, it prunes</p></li>
-<li><p><strong>kwargs</strong> – other keyword arguments will be ignored</p></li>
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – metric name or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of ModelBase.param_range()</p></li>
 </ul>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>&#64;n_jobs was obsoleted because this is not effective for Optuna.</p>
+<p>&#64;n_jobs was obsoleted because this does not work effectively in Optuna.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please refer to covsirphy.Evaluator.score() for metric names</p>
 </div>
 </dd></dl>
 
@@ -1707,7 +1716,7 @@ the best intermediate value is in the bottom percentile among trials, it prunes<
 <li><p>tau</p></li>
 <li><p>Rt: basic or phase-dependent reproduction number</p></li>
 <li><p>(dimensional parameters [day])</p></li>
-<li><p>RMSLE: Root Mean Squared Log Error</p></li>
+<li><p>{metric name}: score with the metric</p></li>
 <li><p>Trials: the number of trials</p></li>
 <li><p>Runtime: run time of estimation</p></li>
 </ul>
@@ -1715,6 +1724,106 @@ the best intermediate value is in the bottom percentile among trials, it prunes<
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>dict[str, float or int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="covsirphy.Evaluator">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Evaluator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inner'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate residual errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_true</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – correct target values</p></li>
+<li><p><strong>y_pred</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – estimated target values</p></li>
+<li><p><strong>how</strong> (<em>str</em>) – “all” (use all records) or “inner” (intersection will be used)</p></li>
+<li><p><strong>on</strong> (<em>str</em><em> or </em><em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – column names to join on or None (join on index)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – un-expected types were used for the arguments</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Evaluation with metrics will be done with sklearn.metrics package.
+<a class="reference external" href="https://scikit-learn.org/stable/modules/model_evaluation.html">https://scikit-learn.org/stable/modules/model_evaluation.html</a></p>
+</div>
+<dl class="py method">
+<dt id="covsirphy.Evaluator.metrics">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">metrics</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Evaluator.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of metric names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of metric names</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.Evaluator.score">
+<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Evaluator.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate score with specified metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – ME, MAE, MSE, MSLE, MAPE, RMSE, RMSLE, R2 or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#covsirphy.UnExpectedValueError" title="covsirphy.UnExpectedValueError"><strong>UnExpectedValueError</strong></a> – un-expected metric was applied</p></li>
+<li><p><strong>ValueError</strong> – ME was selected as metric when the targets have multiple columns</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>score with the metric</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ME: maximum residual error
+MAE: mean absolute error
+MSE: mean square error
+MSLE: mean squared logarithmic error
+MAPE: mean absolute percentage error
+RMSE: root mean squared error
+RMSLE: root mean squared logarithmic error
+R2: the coefficient of determination</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When &#64;metric is None, &#64;metrics will be used as &#64;metric. Default value is “RMSLE”.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.Evaluator.smaller_is_better">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">smaller_is_better</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.smaller_is_better"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Evaluator.smaller_is_better" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether smaller value of the metric is better or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – ME, MAE, MSE, MSLE, MAPE, RMSE, RMSLE, R2 or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>whether smaller value is better or not</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3092,11 +3201,6 @@ When &#64;country is a country name, province level data in the selected country
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="covsirphy.ModelBase.QUANTILE_RANGE">
-<code class="sig-name descname"><span class="pre">QUANTILE_RANGE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[0.3,</span> <span class="pre">0.7]</span></em><a class="headerlink" href="#covsirphy.ModelBase.QUANTILE_RANGE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="covsirphy.ModelBase.VARIABLES">
 <code class="sig-name descname"><span class="pre">VARIABLES</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#covsirphy.ModelBase.VARIABLES" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3145,8 +3249,8 @@ This method should be overwritten in subclass.</p>
 
 <dl class="py method">
 <dt id="covsirphy.ModelBase.param_range">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/mbase.html#ModelBase.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.ModelBase.param_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the range of parameters (not including tau value).
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.3,</span> <span class="pre">0.7)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/mbase.html#ModelBase.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.ModelBase.param_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the value range of ODE parameters using (X, dX/dt) points.
 This method should be overwritten in subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -3162,17 +3266,14 @@ This method should be overwritten in subclass.</p>
 </dl>
 </p></li>
 <li><p><strong>population</strong> (<em>int</em>) – total population</p></li>
+<li><p><strong>quantiles</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – quantiles to cut, like confidence interval</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>(dict)</dt><dd><ul class="simple">
-<li><p>key (str): parameter name</p></li>
-<li><p>value (tuple(float, float)): min value and max value</p></li>
-</ul>
+<dd class="field-even"><p>minimum/maximum values</p>
 </dd>
-</dl>
-</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict(str, tuple(float, float))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -4237,15 +4338,15 @@ If &#64;phases is not None, intersection will be selected.</p>
 
 <dl class="py method">
 <dt id="covsirphy.ParamTracker.score">
-<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/param_tracker.html#ParamTracker.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.ParamTracker.score" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/param_tracker.html#ParamTracker.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.ParamTracker.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate accuracy of phase setting and parameter estimation of selected enabled phases.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>metrics</strong> (<em>str</em>) – “MAE”, “MSE”, “MSLE”, “RMSE” or “RMSLE”</p></li>
 <li><p><strong>variables</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – variables to use in calculation</p></li>
 <li><p><strong>phases</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – phases to use in calculation</p></li>
 <li><p><strong>y0_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] or </em><em>None</em>) – dictionary of initial values of variables</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of covsirphy.Evaluator.score()</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -4993,7 +5094,7 @@ Simulation end at the next date of the end date of the phase.</p>
 <li><p>rho etc. (float): parameter values if available</p></li>
 <li><p>tau (int): tau value [min]</p></li>
 <li><p>(int): day parameter values if available</p></li>
-<li><p>RMSLE (float): RMSLE score of parameter estimation</p></li>
+<li><p>{metric name} (float): score of parameter estimation</p></li>
 <li><p>Trials (int): the number of trials in parameter estimation</p></li>
 <li><p>Runtime (str): runtime of parameter estimation</p></li>
 </ul>
@@ -5039,7 +5140,7 @@ Simulation end at the next date of the end date of the phase.</p>
 <li><p>parameter values if available</p></li>
 <li><p>day parameter values if available</p></li>
 <li><p>tau: tau value [min]</p></li>
-<li><p>RMSLE: RMSLE value of estimation</p></li>
+<li><p>{metric name}: score of parameter estimation</p></li>
 <li><p>Trials: the number of trials in estimation</p></li>
 <li><p>Runtime: runtime of estimation</p></li>
 </ul>
@@ -5628,6 +5729,108 @@ When &#64;country is a country name, province level data in the selected country
 </dd></dl>
 
 <dl class="py class">
+<dt id="covsirphy.RegressionHandler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">RegressionHandler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/regression/reg_handler.html#RegressionHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.RegressionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="covsirphy.util.html#covsirphy.util.term.Term" title="covsirphy.util.term.Term"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.util.term.Term</span></code></a></p>
+<p>Handle regressors to predict parameter values of ODE models.
+With .fit() method, the best regressor will be selected based on the scores with test dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pandas.DataFrame</em>) – <dl class="simple">
+<dt>Index</dt><dd><p>Date (pandas.Timestamp): observation date</p>
+</dd>
+<dt>Columns</dt><dd><ul>
+<li><p>parameter values</p></li>
+<li><p>the number of cases</p></li>
+<li><p>indicators</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#covsirphy.ModelBase" title="covsirphy.ModelBase"><em>covsirphy.ModelBase</em></a>) – ODE model</p></li>
+<li><p><strong>delay</strong> (<em>int</em>) – delay period [days]</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of sklearn.model_selection.train_test_split(test_size=0.2, random_state=0)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If &#64;seed is included in kwargs, this will be converted to &#64;random_state.</p>
+</div>
+<dl class="py method">
+<dt id="covsirphy.RegressionHandler.fit">
+<code class="sig-name descname"><span class="pre">fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/regression/reg_handler.html#RegressionHandler.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.RegressionHandler.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit regressors and select the best regressor based on the scores with test dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric</strong> (<em>str</em>) – metric name to select the best regressor</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All regressors are here.
+- Indicators -&gt; Parameters with Elastic Net</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.RegressionHandler.predict">
+<code class="sig-name descname"><span class="pre">predict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/regression/reg_handler.html#RegressionHandler.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.RegressionHandler.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict parameter values of the ODE model using the best regressor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Index</dt><dd><p>Date (pandas.Timestamp): future dates</p>
+</dd>
+<dt>Columns</dt><dd><p>(float): parameter values (4 digits)</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.RegressionHandler.to_dict">
+<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/regression/reg_handler.html#RegressionHandler.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.RegressionHandler.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information regarding the best regressor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric</strong> (<em>str</em>) – metric name to select the best regressor</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>regressor information of the best model, including</dt><dd><ul class="simple">
+<li><p>best (str): description of the selected approach</p></li>
+<li><p>scaler (object): scaler class</p></li>
+<li><p>regressor (object): regressor class</p></li>
+<li><p>alpha (float): alpha value used in Elastic Net regression</p></li>
+<li><p>l1_ratio (float): l1_ratio value used in Elastic Net regression</p></li>
+<li><p>score_name (str): scoring method (specified with &#64;metric or &#64;metrics)</p></li>
+<li><p>score_train (float): score with train dataset</p></li>
+<li><p>score_test (float): score with test dataset</p></li>
+<li><p>dataset (dict[numpy.ndarray]): X_train, X_test, y_train, y_test, X_target</p></li>
+<li><p>intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)</p></li>
+<li><p>coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)</p></li>
+<li><p>delay (int): delay period</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict(str, object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="covsirphy.SEWIRF">
 <em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">SEWIRF</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sewirf.html#SEWIRF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SEWIRF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="covsirphy.ode.html#covsirphy.ode.mbase.ModelBase" title="covsirphy.ode.mbase.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">covsirphy.ode.mbase.ModelBase</span></code></a></p>
@@ -5903,8 +6106,9 @@ When &#64;country is a country name, province level data in the selected country
 
 <dl class="py method">
 <dt id="covsirphy.SIR.param_range">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sir.html#SIR.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIR.param_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the range of parameters (not including tau value).</p>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.1,</span> <span class="pre">0.9)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sir.html#SIR.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIR.param_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the value range of ODE parameters using (X, dX/dt) points.
+In SIR model, X is S, I and R here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -5919,17 +6123,14 @@ When &#64;country is a country name, province level data in the selected country
 </dl>
 </p></li>
 <li><p><strong>population</strong> (<em>int</em>) – total population</p></li>
+<li><p><strong>quantiles</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – quantiles to cut, like confidence interval</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>(dict)</dt><dd><ul class="simple">
-<li><p>key (str): parameter name</p></li>
-<li><p>value (tuple(float, float)): min value and max value</p></li>
-</ul>
+<dd class="field-even"><p>minimum/maximum values</p>
 </dd>
-</dl>
-</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict(str, tuple(float, float))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6104,8 +6305,9 @@ When &#64;country is a country name, province level data in the selected country
 
 <dl class="py method">
 <dt id="covsirphy.SIRD.param_range">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sird.html#SIRD.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIRD.param_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the range of parameters (not including tau value).</p>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.1,</span> <span class="pre">0.9)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sird.html#SIRD.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIRD.param_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the value range of ODE parameters using (X, dX/dt) points.
+In SIR model, X is S, I, R, D here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -6120,17 +6322,14 @@ When &#64;country is a country name, province level data in the selected country
 </dl>
 </p></li>
 <li><p><strong>population</strong> (<em>int</em>) – total population</p></li>
+<li><p><strong>quantiles</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – quantiles to cut, like confidence interval</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>(dict)</dt><dd><ul class="simple">
-<li><p>key (str): parameter name</p></li>
-<li><p>value (tuple(float, float)): min value and max value</p></li>
-</ul>
+<dd class="field-even"><p>minimum/maximum values</p>
 </dd>
-</dl>
-</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict(str, tuple(float, float))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6303,8 +6502,9 @@ When &#64;country is a country name, province level data in the selected country
 
 <dl class="py method">
 <dt id="covsirphy.SIRF.param_range">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sirf.html#SIRF.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIRF.param_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define the range of parameters (not including tau value).</p>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">param_range</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taufree_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.1,</span> <span class="pre">0.9)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/ode/sirf.html#SIRF.param_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.SIRF.param_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the value range of ODE parameters using (X, dX/dt) points.
+In SIR model, X is S, I, R, F here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -6319,17 +6519,14 @@ When &#64;country is a country name, province level data in the selected country
 </dl>
 </p></li>
 <li><p><strong>population</strong> (<em>int</em>) – total population</p></li>
+<li><p><strong>quantiles</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – quantiles to cut, like confidence interval</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>(dict)</dt><dd><ul class="simple">
-<li><p>key (str): parameter name</p></li>
-<li><p>value (tuple(float, float)): min value and max value</p></li>
-</ul>
+<dd class="field-even"><p>minimum/maximum values</p>
 </dd>
-</dl>
-</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict(str, tuple(float, float))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6790,16 +6987,18 @@ If the last phase is not included, the dates will be assigned to the previous ph
 
 <dl class="py method">
 <dt id="covsirphy.Scenario.estimate_delay">
-<code class="sig-name descname"><span class="pre">estimate_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oxcgrt_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Stringency_index'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Confirmed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(7,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.estimate_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.estimate_delay" title="Permalink to this definition">¶</a></dt>
-<dd><p>Estimate the mode value of delay period [days] between the indicator and the target.
-We assume that the indicator impact on the target value with delay.</p>
+<code class="sig-name descname"><span class="pre">estimate_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oxcgrt_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Stringency_index'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Confirmed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(7,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.estimate_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.estimate_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate delay period [days], assuming the indicator impact on the target value with delay.
+The average of representative value (percentile) and &#64;min_size will be returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>oxcgrt_data</strong> (<a class="reference internal" href="#covsirphy.OxCGRTData" title="covsirphy.OxCGRTData"><em>covsirphy.OxCGRTData</em></a>) – OxCGRT dataset</p></li>
 <li><p><strong>indicator</strong> (<em>str</em>) – indicator name, a column of any registered datasets</p></li>
 <li><p><strong>target</strong> (<em>str</em>) – target name, a column of any registered datasets</p></li>
-<li><p><strong>value_range</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em> or </em><em>None</em><em>)</em>) – tuple, giving the minimum and maximum range to search for change over time</p></li>
+<li><p><strong>percentile</strong> (<em>int</em>) – percentile to calculate the representative value, in (0, 100)</p></li>
+<li><p><strong>limits</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em>) – minimum/maximum size of the delay period [days]</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of DataHandler.estimate_delay()</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -6837,7 +7036,6 @@ We assume that the indicator impact on the target value with delay.</p>
 <p class="admonition-title">Note</p>
 <ul class="simple">
 <li><p>Average recovered period of JHU dataset will be used as returned value when the estimated value was not in value_range.</p></li>
-<li><p>Very long periods (outside of 99% quantile) are taken out.</p></li>
 <li><p>&#64;oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).</p></li>
 </ul>
 </div>
@@ -6875,10 +7073,10 @@ We assume that the indicator impact on the target value with delay.</p>
 
 <dl class="py method">
 <dt id="covsirphy.Scenario.fit">
-<code class="sig-name descname"><span class="pre">fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oxcgrt_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removed_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn the relationship of ODE parameter values and delayed OxCGRT scores using Elastic Net regression,
-assuming that OxCGRT scores will impact on ODE parameter values with delay.
-Min-max scaling and Elastic net regression with parameter optimization and cross validation.</p>
+<code class="sig-name descname"><span class="pre">fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oxcgrt_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removed_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'R2'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit regressors to predict the parameter values in the future phases,
+assuming that indicators will impact on ODE parameter values/the number of cases with delay.
+Please refer to covsirphy.RegressionHander class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -6886,40 +7084,34 @@ Min-max scaling and Elastic net regression with parameter optimization and cross
 <li><p><strong>name</strong> (<em>str</em>) – scenario name</p></li>
 <li><p><strong>test_size</strong> (<em>float</em>) – proportion of the test dataset of Elastic Net regression</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – random seed when spliting the dataset to train/test data</p></li>
-<li><p><strong>delay</strong> (<em>int</em>) – delay period [days], please refer to Scenario.estimate_delay()</p></li>
+<li><p><strong>delay</strong> (<em>int</em><em> or </em><em>None</em>) – delay period [days] or None (Scenario.estimate_delay() calculate automatically)</p></li>
 <li><p><strong>removed_cols</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – list of variables to remove from X dataset or None (indicators used to estimate delay period)</p></li>
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – metric name or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of sklearn.model_selection.train_test_split(test_size=0.2, random_state=0)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="#covsirphy.UnExecutedError" title="covsirphy.UnExecutedError"><strong>covsirphy.UnExecutedError</strong></a> – Scenario.estimate() or Scenario.add() were not performed</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p>scaler (object): scaler class</p></li>
-<li><p>regressor (object): regressor class</p></li>
-<li><p>alpha (float): alpha value used in Elastic Net regression</p></li>
-<li><p>l1_ratio (float): l1_ratio value used in Elastic Net regression</p></li>
-<li><p>score_train (float): determination coefficient of train dataset</p></li>
-<li><p>score_test (float): determination coefficient of test dataset</p></li>
-<li><p>X_train (numpy.array): X_train</p></li>
-<li><p>y_train (numpy.array): y_train</p></li>
-<li><p>X_test (numpy.array): X_test</p></li>
-<li><p>y_test (numpy.array): y_test</p></li>
-<li><p>X_target (numpy.array): X_target</p></li>
-<li><p>intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)</p></li>
-<li><p>coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)</p></li>
-<li><p>delay (int): number of days of delay between policy measure and effect
-on number of confirmed cases.</p></li>
-</ul>
-</p>
+<dd class="field-odd"><p>this is the same as covsirphy.Regressionhander.to_dict()</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>dict(str, object)</p>
+<dd class="field-even"><p>dict</p>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>&#64;oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please refer to covsirphy.Evaluator.score() for metric names.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If &#64;seed is included in kwargs, this will be converted to &#64;random_state.</p>
 </div>
 </dd></dl>
 
@@ -7253,21 +7445,21 @@ actual values of the last date before the beginning date will be used.</p>
 
 <dl class="py method">
 <dt id="covsirphy.Scenario.score">
-<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.score" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Main'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/analysis/scenario.html#Scenario.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.Scenario.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate accuracy of phase setting and parameter estimation of all enabled phases all some past days.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>metrics</strong> (<em>str</em>) – “MAE”, “MSE”, “MSLE”, “RMSE” or “RMSLE”</p></li>
 <li><p><strong>variables</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – variables to use in calculation</p></li>
 <li><p><strong>phases</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – phases to use in calculation</p></li>
 <li><p><strong>past_days</strong> (<em>int</em><em> or </em><em>None</em>) – how many past days to use in calculation, natural integer</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – phase series name. If ‘Main’, main PhaseSeries will be used</p></li>
 <li><p><strong>y0_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] or </em><em>None</em>) – dictionary of initial values of variables</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments of covsirphy.Evaluator.score()</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>score with the specified metrics</p>
+<dd class="field-even"><p>score with the specified metrics (covsirphy.Evaluator.score())</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
@@ -7279,6 +7471,10 @@ actual values of the last date before the beginning date will be used.</p>
 “Confirmed”, “Infected”, “Fatal” and “Recovered” can be used in &#64;variables.
 If &#64;phases is None, all phases will be used.
 &#64;phases and &#64;past_days can not be specified at the same time.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please refer to covsirphy.Evaluator.score() for metrics.</p>
 </div>
 </dd></dl>
 
@@ -7651,11 +7847,6 @@ If &#64;columns is None, all columns will be shown.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="covsirphy.Term.EST_COLS">
-<code class="sig-name descname"><span class="pre">EST_COLS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">['RMSLE',</span> <span class="pre">'Trials',</span> <span class="pre">'Runtime']</span></em><a class="headerlink" href="#covsirphy.Term.EST_COLS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="covsirphy.Term.F">
 <code class="sig-name descname"><span class="pre">F</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'Fatal'</span></em><a class="headerlink" href="#covsirphy.Term.F" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -7693,11 +7884,6 @@ If &#64;columns is None, all columns will be shown.</p>
 <dl class="py attribute">
 <dt id="covsirphy.Term.MAIN">
 <code class="sig-name descname"><span class="pre">MAIN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'Main'</span></em><a class="headerlink" href="#covsirphy.Term.MAIN" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="covsirphy.Term.METRICS_DICT">
-<code class="sig-name descname"><span class="pre">METRICS_DICT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{'MAE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_absolute_error&gt;,</span> <span class="pre">'MSE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_squared_error&gt;,</span> <span class="pre">'MSLE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_squared_log_error&gt;,</span> <span class="pre">'RMSE':</span> <span class="pre">&lt;function</span> <span class="pre">Term.&lt;lambda&gt;&gt;,</span> <span class="pre">'RMSLE':</span> <span class="pre">&lt;function</span> <span class="pre">Term.&lt;lambda&gt;&gt;}</span></em><a class="headerlink" href="#covsirphy.Term.METRICS_DICT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -7763,11 +7949,6 @@ If &#64;columns is None, all columns will be shown.</p>
 <dl class="py attribute">
 <dt id="covsirphy.Term.RATE_COLUMNS">
 <code class="sig-name descname"><span class="pre">RATE_COLUMNS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">['Fatal</span> <span class="pre">per</span> <span class="pre">Confirmed',</span> <span class="pre">'Recovered</span> <span class="pre">per</span> <span class="pre">Confirmed',</span> <span class="pre">'Fatal</span> <span class="pre">per</span> <span class="pre">(Fatal</span> <span class="pre">or</span> <span class="pre">Recovered)']</span></em><a class="headerlink" href="#covsirphy.Term.RATE_COLUMNS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="covsirphy.Term.RMSLE">
-<code class="sig-name descname"><span class="pre">RMSLE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'RMSLE'</span></em><a class="headerlink" href="#covsirphy.Term.RMSLE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -8201,11 +8382,14 @@ Please refer to documentation of ruptures package.
 
 <dl class="py method">
 <dt id="covsirphy.TrendDetector.summary">
-<code class="sig-name descname"><span class="pre">summary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/trend/trend_detector.html#TrendDetector.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.TrendDetector.summary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">summary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/trend/trend_detector.html#TrendDetector.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.TrendDetector.summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Summarize the phases with a dataframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>metrics</strong> (<em>str</em>) – “MAE”, “MSE”, “MSLE”, “RMSE” or “RMSLE”</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – metric name or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
@@ -8215,7 +8399,7 @@ Please refer to documentation of ruptures package.
 <li><p>Start (str): star dates</p></li>
 <li><p>End (str): end dates</p></li>
 <li><p>Duration (int): phase duration</p></li>
-<li><p>{metrics}_S-R (float): scores on S-R plane with the metrics</p></li>
+<li><p>{metric}_S-R (float): scores on S-R plane with the selected metric</p></li>
 </ul>
 </dd>
 </dl>
@@ -8225,6 +8409,10 @@ Please refer to documentation of ruptures package.
 <dd class="field-odd"><p>pandas.Dataframe</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please refer to covsirphy.Evaluator.score() for metric names</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -8794,6 +8982,14 @@ Index</p>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.phase.html#module-covsirphy.phase.phase_unit">covsirphy.phase.phase_unit module</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="covsirphy.regression.html">covsirphy.regression package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.regression.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.regression.html#module-covsirphy.regression.param_elastic_net">covsirphy.regression.param_elastic_net module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.regression.html#module-covsirphy.regression.rate_elastic_net">covsirphy.regression.rate_elastic_net module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.regression.html#module-covsirphy.regression.reg_handler">covsirphy.regression.reg_handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.regression.html#module-covsirphy.regression.regbase">covsirphy.regression.regbase module</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="covsirphy.simulation.html">covsirphy.simulation package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.simulation.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.simulation.html#module-covsirphy.simulation.estimator">covsirphy.simulation.estimator module</a></li>
@@ -8811,6 +9007,7 @@ Index</p>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.argument">covsirphy.util.argument module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.error">covsirphy.util.error module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.evaluator">covsirphy.util.evaluator module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.filer">covsirphy.util.filer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.stopwatch">covsirphy.util.stopwatch module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="covsirphy.util.html#module-covsirphy.util.term">covsirphy.util.term module</a></li>

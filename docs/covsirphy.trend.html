@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.18.0-alpha
+                2.19.0
               </div>
             
           
@@ -108,6 +108,7 @@
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.cleaning.html">covsirphy.cleaning package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.ode.html">covsirphy.ode package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.phase.html">covsirphy.phase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="covsirphy.regression.html">covsirphy.regression package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.simulation.html">covsirphy.simulation package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">covsirphy.trend package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -350,11 +351,14 @@ Please refer to documentation of ruptures package.
 
 <dl class="py method">
 <dt id="covsirphy.trend.trend_detector.TrendDetector.summary">
-<code class="sig-name descname"><span class="pre">summary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/trend/trend_detector.html#TrendDetector.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.trend.trend_detector.TrendDetector.summary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">summary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MSE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/trend/trend_detector.html#TrendDetector.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.trend.trend_detector.TrendDetector.summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Summarize the phases with a dataframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>metrics</strong> (<em>str</em>) – “MAE”, “MSE”, “MSLE”, “RMSE” or “RMSLE”</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – metric name or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
@@ -364,7 +368,7 @@ Please refer to documentation of ruptures package.
 <li><p>Start (str): star dates</p></li>
 <li><p>End (str): end dates</p></li>
 <li><p>Duration (int): phase duration</p></li>
-<li><p>{metrics}_S-R (float): scores on S-R plane with the metrics</p></li>
+<li><p>{metric}_S-R (float): scores on S-R plane with the selected metric</p></li>
 </ul>
 </dd>
 </dl>
@@ -374,6 +378,10 @@ Please refer to documentation of ruptures package.
 <dd class="field-odd"><p>pandas.Dataframe</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please refer to covsirphy.Evaluator.score() for metric names</p>
+</div>
 </dd></dl>
 
 </dd></dl>

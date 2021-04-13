@@ -19,7 +19,7 @@ def main(country="Italy", province=None, file_prefix="ita"):
         pronvince (str or None): province name or None (country level)
         file_prefix (str): prefix of the filenames
     """
-    # This script works with version >= 2.17.0-eta
+    # This script works with version >= 2.18.0-beta
     print(cs.get_version())
     # Create output directory in example directory
     code_path = Path(__file__)
@@ -45,10 +45,10 @@ def main(country="Italy", province=None, file_prefix="ita"):
     # Parameter estimation
     snl.estimate(cs.SIRF)
     # Score of parameter estimation
-    metrics_list = ["MAE", "MSE", "MSLE", "RMSE", "RMSLE"]
-    for metrics in metrics_list:
-        metrics_name = metrics.rjust(len(max(metrics_list, key=len)))
-        print(f"{metrics_name}: {snl.score(metrics=metrics)}")
+    metrics = ["MAE", "MSE", "MSLE", "RMSE", "RMSLE"]
+    for metric in metrics:
+        metric_name = metric.rjust(len(max(metrics, key=len)))
+        print(f"{metric_name}: {snl.score(metric=metric)}")
     # Reproduction number in past phases
     snl.history("Rt", **filer.png("history_rt_past"))
     # Main scenario: parameters not changed
@@ -56,7 +56,11 @@ def main(country="Italy", province=None, file_prefix="ita"):
     snl.simulate(name="Main", **filer.png("simulate_main"))
     snl.history_rate(name="Main", **filer.png("history-rate_main"))
     # Forecast scenario: Short-term prediction with regression and OxCGRT data
-    snl.fit_predict(name="Forecast")
+    fit_dict = snl.fit(name="Forecast")
+    fit_dict.pop("coef").to_csv(**filer.csv("forecast_coef", index=True))
+    del fit_dict["dataset"], fit_dict["intercept"]
+    print(fit_dict)
+    snl.predict(name="Forecast")
     snl.add(name="Forecast", end_date="31May2021")
     snl.simulate(name="Forecast", **filer.png("simulate_forecast"))
     snl.history_rate(name="Main", **filer.png("history-rate_forecast"))

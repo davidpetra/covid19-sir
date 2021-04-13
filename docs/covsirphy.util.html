@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.18.0-alpha
+                2.19.0
               </div>
             
           
@@ -108,12 +108,14 @@
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.cleaning.html">covsirphy.cleaning package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.ode.html">covsirphy.ode package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.phase.html">covsirphy.phase package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="covsirphy.regression.html">covsirphy.regression package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.simulation.html">covsirphy.simulation package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="covsirphy.trend.html">covsirphy.trend package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">covsirphy.util package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.argument">covsirphy.util.argument module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.error">covsirphy.util.error module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.evaluator">covsirphy.util.evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.filer">covsirphy.util.filer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.stopwatch">covsirphy.util.stopwatch module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-covsirphy.util.term">covsirphy.util.term module</a></li>
@@ -374,6 +376,109 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-covsirphy.util.evaluator">
+<span id="covsirphy-util-evaluator-module"></span><h2>covsirphy.util.evaluator module<a class="headerlink" href="#module-covsirphy.util.evaluator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="covsirphy.util.evaluator.Evaluator">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Evaluator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inner'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.util.evaluator.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate residual errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_true</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – correct target values</p></li>
+<li><p><strong>y_pred</strong> (<em>pandas.DataFrame</em><em> or </em><em>pandas.Series</em>) – estimated target values</p></li>
+<li><p><strong>how</strong> (<em>str</em>) – “all” (use all records) or “inner” (intersection will be used)</p></li>
+<li><p><strong>on</strong> (<em>str</em><em> or </em><em>list</em><em>[</em><em>str</em><em>] or </em><em>None</em>) – column names to join on or None (join on index)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – un-expected types were used for the arguments</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Evaluation with metrics will be done with sklearn.metrics package.
+<a class="reference external" href="https://scikit-learn.org/stable/modules/model_evaluation.html">https://scikit-learn.org/stable/modules/model_evaluation.html</a></p>
+</div>
+<dl class="py method">
+<dt id="covsirphy.util.evaluator.Evaluator.metrics">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">metrics</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.util.evaluator.Evaluator.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of metric names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of metric names</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.util.evaluator.Evaluator.score">
+<code class="sig-name descname"><span class="pre">score</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.util.evaluator.Evaluator.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate score with specified metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – ME, MAE, MSE, MSLE, MAPE, RMSE, RMSLE, R2 or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="covsirphy.html#covsirphy.UnExpectedValueError" title="covsirphy.UnExpectedValueError"><strong>UnExpectedValueError</strong></a> – un-expected metric was applied</p></li>
+<li><p><strong>ValueError</strong> – ME was selected as metric when the targets have multiple columns</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>score with the metric</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ME: maximum residual error
+MAE: mean absolute error
+MSE: mean square error
+MSLE: mean squared logarithmic error
+MAPE: mean absolute percentage error
+RMSE: root mean squared error
+RMSLE: root mean squared logarithmic error
+R2: the coefficient of determination</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When &#64;metric is None, &#64;metrics will be used as &#64;metric. Default value is “RMSLE”.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="covsirphy.util.evaluator.Evaluator.smaller_is_better">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">smaller_is_better</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RMSLE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/covsirphy/util/evaluator.html#Evaluator.smaller_is_better"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#covsirphy.util.evaluator.Evaluator.smaller_is_better" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether smaller value of the metric is better or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em><em> or </em><em>None</em>) – ME, MAE, MSE, MSLE, MAPE, RMSE, RMSLE, R2 or None (use &#64;metrics)</p></li>
+<li><p><strong>metrics</strong> (<em>str</em>) – alias of &#64;metric</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>whether smaller value is better or not</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-covsirphy.util.filer">
 <span id="covsirphy-util-filer-module"></span><h2>covsirphy.util.filer module<a class="headerlink" href="#module-covsirphy.util.filer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -610,11 +715,6 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="covsirphy.util.term.Term.EST_COLS">
-<code class="sig-name descname"><span class="pre">EST_COLS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">['RMSLE',</span> <span class="pre">'Trials',</span> <span class="pre">'Runtime']</span></em><a class="headerlink" href="#covsirphy.util.term.Term.EST_COLS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="covsirphy.util.term.Term.F">
 <code class="sig-name descname"><span class="pre">F</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'Fatal'</span></em><a class="headerlink" href="#covsirphy.util.term.Term.F" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -652,11 +752,6 @@
 <dl class="py attribute">
 <dt id="covsirphy.util.term.Term.MAIN">
 <code class="sig-name descname"><span class="pre">MAIN</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'Main'</span></em><a class="headerlink" href="#covsirphy.util.term.Term.MAIN" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="covsirphy.util.term.Term.METRICS_DICT">
-<code class="sig-name descname"><span class="pre">METRICS_DICT</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{'MAE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_absolute_error&gt;,</span> <span class="pre">'MSE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_squared_error&gt;,</span> <span class="pre">'MSLE':</span> <span class="pre">&lt;function</span> <span class="pre">mean_squared_log_error&gt;,</span> <span class="pre">'RMSE':</span> <span class="pre">&lt;function</span> <span class="pre">Term.&lt;lambda&gt;&gt;,</span> <span class="pre">'RMSLE':</span> <span class="pre">&lt;function</span> <span class="pre">Term.&lt;lambda&gt;&gt;}</span></em><a class="headerlink" href="#covsirphy.util.term.Term.METRICS_DICT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -722,11 +817,6 @@
 <dl class="py attribute">
 <dt id="covsirphy.util.term.Term.RATE_COLUMNS">
 <code class="sig-name descname"><span class="pre">RATE_COLUMNS</span></code><em class="property"> <span class="pre">=</span> <span class="pre">['Fatal</span> <span class="pre">per</span> <span class="pre">Confirmed',</span> <span class="pre">'Recovered</span> <span class="pre">per</span> <span class="pre">Confirmed',</span> <span class="pre">'Fatal</span> <span class="pre">per</span> <span class="pre">(Fatal</span> <span class="pre">or</span> <span class="pre">Recovered)']</span></em><a class="headerlink" href="#covsirphy.util.term.Term.RATE_COLUMNS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="covsirphy.util.term.Term.RMSLE">
-<code class="sig-name descname"><span class="pre">RMSLE</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'RMSLE'</span></em><a class="headerlink" href="#covsirphy.util.term.Term.RMSLE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
