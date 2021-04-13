@@ -1319,45 +1319,41 @@ class Scenario(Term):
         delay_period = int((low_lim + Q1) / 2)
         return (int(delay_period), df)
 
-    def fit(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None, removed_cols=None):
+    def fit(self, oxcgrt_data=None, name="Main", delay=None, removed_cols=None, metric=None, metrics="R2", **kwargs):
         """
-        Learn the relationship of ODE parameter values and delayed OxCGRT scores using Elastic Net regression,
-        assuming that OxCGRT scores will impact on ODE parameter values with delay.
-        Min-max scaling and Elastic net regression with parameter optimization and cross validation.
+        Fit regressors to predict the parameter values in the future phases,
+        assuming that indicators will impact on ODE parameter values/the number of cases with delay.
+        Please refer to covsirphy.RegressionHander class.
 
         Args:
             oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset, deprecated
             name (str): scenario name
             test_size (float): proportion of the test dataset of Elastic Net regression
             seed (int): random seed when spliting the dataset to train/test data
-            delay (int): delay period [days], please refer to Scenario.estimate_delay()
+            delay (int or None): delay period [days] or None (Scenario.estimate_delay() calculate automatically)
             removed_cols (list[str] or None): list of variables to remove from X dataset or None (indicators used to estimate delay period)
+            metric (str or None): metric name or None (use @metrics)
+            metrics (str): alias of @metric
+            kwargs: keyword arguments of sklearn.model_selection.train_test_split(test_size=0.2, random_state=0)
 
         Raises:
             covsirphy.UnExecutedError: Scenario.estimate() or Scenario.add() were not performed
 
         Returns:
-            dict(str, object):
-                - scaler (object): scaler class
-                - regressor (object): regressor class
-                - alpha (float): alpha value used in Elastic Net regression
-                - l1_ratio (float): l1_ratio value used in Elastic Net regression
-                - score_train (float): determination coefficient of train dataset
-                - score_test (float): determination coefficient of test dataset
-                - X_train (numpy.array): X_train
-                - y_train (numpy.array): y_train
-                - X_test (numpy.array): X_test
-                - y_test (numpy.array): y_test
-                - X_target (numpy.array): X_target
-                - intercept (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-                - coef (pandas.DataFrame): intercept and coefficients (Index ODE parameters, Columns indicators)
-                - delay (int): number of days of delay between policy measure and effect
-                  on number of confirmed cases.
+            dict: this is the same as covsirphy.Regressionhander.to_dict()
 
         Note:
             @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
+
+        Note:
+            Please refer to covsirphy.Evaluator.score() for metric names.
+
+        Note:
+            If @seed is included in kwargs, this will be converted to @random_state.
         """
-        warnings.simplefilter("ignore", category=ConvergenceWarning)
+        metric = metric or metrics
+        # Clear the future phases
+        self.clear(name=name, include_past=False)
         # Register OxCGRT data
         if oxcgrt_data is not None:
             warnings.warn(
@@ -1378,67 +1374,21 @@ class Scenario(Term):
             delay = self._ensure_natural_int(delay, name="delay")
             removed_cols = removed_cols or None
         # Create training/test dataset
+        param_df = self._track_param(name=name)[model.PARAMETERS]
         try:
-            X, y, X_target = self._fit_create_data(
-                model=model, name=name, delay=delay, removed_cols=removed_cols)
+            records_df = self._data.records(main=True, extras=True).set_index(self.DATE)
         except NotRegisteredExtraError:
             raise NotRegisteredExtraError(
                 "Scenario.register(jhu_data, population_data, extras=[...])",
                 message="with extra datasets") from None
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
-        # Create pipeline for learning
-        cv = linear_model.MultiTaskElasticNetCV(
-            alphas=[0, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-            l1_ratio=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            cv=5, n_jobs=-1)
-        steps = [
-            ("scaler", MinMaxScaler()),
-            ("regressor", cv),
-        ]
-        pipeline = Pipeline(steps=steps)
-        pipeline.fit(X_train, y_train)
-        # Register the pipeline and X-target for prediction
-        self._lm_dict[name] = (pipeline, X_target)
-
-        # Get train score
-        r2_train_score = r2_score(pipeline.predict(X_train), y_train)
-        r2_train_print = f"{r2_train_score:.3f}"
-        mape_train_score = mean_absolute_percentage_error(pipeline.predict(X_train), y_train)
-        mape_train_print = f"{mape_train_score:.3f}"
-
-        score_train = "R2 Score: " + r2_train_print + ", MAPE Score: " + mape_train_print
-        
-        # Get test score
-        r2_test_score = r2_score(pipeline.predict(X_test), y_test)
-        r2_test_print = f"{r2_test_score:.3f}"
-        mape_test_score = mean_absolute_percentage_error(pipeline.predict(X_test), y_test)
-        mape_test_print = f"{mape_test_score:.3f}"
-
-        score_test = "R2 Score: " + r2_test_print + ", MAPE Score: " + mape_test_print
-        
-        # Return information regarding regression model
-        reg_output = pipeline.named_steps.regressor
-        
-        # Intercept and coefficients
-        intercept_df = pd.DataFrame(reg_output.coef_, index=y_train.columns, columns=X_train.columns)
-        intercept_df.insert(0, "Intercept", None)
-        intercept_df["Intercept"] = reg_output.intercept_
+        records_df = records_df.loc[:, ~records_df.columns.isin(removed_cols)]
+        # Fit regression models
+        data = param_df.join(records_df)
+        handler = RegressionHandler(data=data, model=model, delay=delay, **kwargs)
+        handler.fit(metric=metric)
+        self._reghandler_dict[name] = handler
         # Return information
-        return {
-            **{k: type(v) for (k, v) in steps},
-            "alpha": reg_output.alpha_,
-            "l1_ratio": reg_output.l1_ratio_,
-            "score_train": score_train,
-            "score_test": score_test,
-            "X_train": X_train,
-            "y_train": y_train,
-            "X_test": X_test,
-            "y_test": y_test,
-            "X_target": X_target,
-            "intercept": intercept_df,
-            "coef": intercept_df,
-            "delay": delay
-        }
+        return handler.to_dict(metric=metric)
 
     def predict(self, days=None, name="Main"):
         """
@@ -1458,20 +1408,17 @@ class Scenario(Term):
             covsirphy.Scenario: self
         """
         # Arguments
-        if name not in self._lm_dict:
+        if name not in self._reghandler_dict:
             raise UnExecutedError(f"Scenario.fit(name={name})")
-        model = self._tracker(name).last_model
         # Prediction with regression model
-        pipeline, X_target = self._lm_dict[name]
-        predicted = pipeline.predict(X_target)
+        handler = self._reghandler_dict[name]
+        df = handler.predict()
         # -> end_date/parameter values
-        df = pd.DataFrame(predicted, index=X_target.index, columns=model.PARAMETERS)
-        df = df.applymap(lambda x: np.around(x, 4 - int(floor(log10(abs(x)))) - 1))
         df.index = [date.strftime(self.DATE_FORMAT) for date in df.index]
         df.index.name = "end_date"
         # Days to predict
-        days = days or [len(X_target) - 1]
-        self._ensure_list(days, candidates=list(range(len(X_target))), name="days")
+        days = days or [len(df) - 1]
+        self._ensure_list(days, candidates=list(range(len(df))), name="days")
         phase_df = df.reset_index().loc[days, :]
         # Set new future phases
         for phase_dict in phase_df.to_dict(orient="records"):
