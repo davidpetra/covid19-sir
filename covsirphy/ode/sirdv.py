@@ -14,15 +14,15 @@ class SIRDV(ModelBase):
             kappa (float)
             rho (float)
             sigma (float)
-            omega (float) or v_per_day (int)
+            vacrate (float)
     """
     # Model name
     NAME = "SIR-DV"
     # names of parameters
-    PARAMETERS = ["kappa", "rho", "sigma", "omega"]
+    PARAMETERS = ["kappa", "rho", "sigma", "vacrate"]
     DAY_PARAMETERS = [
         "1/alpha2 [day]", "1/beta [day]", "1/gamma [day]",
-        "Vaccinated [persons]"
+        "Vaccination rate [target population/completion time]"
     ]
     # Variable names in (non-dim, dimensional) ODEs
     VAR_DICT = {
@@ -34,7 +34,7 @@ class SIRDV(ModelBase):
     }
     VARIABLES = list(VAR_DICT.values())
     # Weights of variables in parameter estimation error function
-    WEIGHTS = np.array([0, 10, 10, 2, 0])
+    WEIGHTS = np.array([0, 10, 10, 2, 1])
     # Variables that increases monotonically
     VARS_INCLEASE = [ModelBase.R, ModelBase.F]
     # Example set of parameters and initial values
@@ -52,7 +52,7 @@ class SIRDV(ModelBase):
     }
 
     def __init__(self, population, theta, kappa, rho, sigma,
-                 omega=None, v_per_day=None):
+                 vacrate):
         # Total population
         self.population = self._ensure_natural_int(
             population, name="population"
@@ -61,17 +61,9 @@ class SIRDV(ModelBase):
         self.kappa = kappa
         self.rho = rho
         self.sigma = sigma
-        if omega is None:
-            if v_per_day is None:
-                raise TypeError("@omega or @v_per_day must be applied.")
-            omega = v_per_day / population
-        else:
-            if v_per_day is not None and omega != v_per_day / population:
-                raise ValueError(
-                    "@v_per_day / @population does not match @omega.")
-        self.omega = omega
+        self.vacrate = vacrate
         self.non_param_dict = {
-            "kappa": kappa, "rho": rho, "sigma": sigma, "omega": omega}
+            "kappa": kappa, "rho": rho, "sigma": sigma, "vacrate": vacrate}
 
     def __call__(self, t, X):
         """
@@ -87,9 +79,9 @@ class SIRDV(ModelBase):
         n = self.population
         s, i, *_ = X
         beta_si = self.rho * s * i / n
-        dsdt = max(0 - beta_si - self.omega * n, - s)
+        dsdt = max(0 - beta_si - self.vacrate, - s)
         dvdt = 0 - dsdt - beta_si
-        drdt = self.sigma * i
+        drdt = self.sigma * i + self.vacrate
         dfdt = self.kappa * i
         didt = 0 - dsdt - drdt - dfdt - dvdt
         return np.array([dsdt, didt, drdt, dfdt, dvdt])
@@ -209,7 +201,7 @@ class SIRDV(ModelBase):
             float
         """
         try:
-            rt = self.rho * (1 - self.theta) / (self.sigma + self.kappa)
+            rt = self.rho / (self.sigma + self.kappa)
         except ZeroDivisionError:
             return None
         return round(rt, 2)
@@ -230,7 +222,7 @@ class SIRDV(ModelBase):
                 "1/alpha2 [day]": int(tau / 24 / 60 / self.kappa),
                 "1/beta [day]": int(tau / 24 / 60 / self.rho),
                 "1/gamma [day]": int(tau / 24 / 60 / self.sigma),
-                "Vaccinated [persons/day]": int(self.omega * self.population)
+                "Vaccintion rate [target population/completion time]": float(self.vacrate)
             }
         except ZeroDivisionError:
             return {p: None for p in self.DAY_PARAMETERS}
