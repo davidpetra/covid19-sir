@@ -50,7 +50,7 @@ class VaccineData(CleaningBase):
                 self._raw = self._retrieve(filename=filename, verbose=verbose)
         else:
             self._raw = self._retrieve(filename=filename, verbose=verbose)
-
+            
         #self._cleaned_df = self._cleaning()
         self._cleaned_df = df
         self._citation = "Hasell, J., Mathieu, E., Beltekian, D. et al." \
