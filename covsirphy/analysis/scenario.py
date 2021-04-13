@@ -23,10 +23,12 @@ from covsirphy.util.argument import find_args
 from covsirphy.util.error import deprecate, ScenarioNotFoundError, UnExecutedError
 from covsirphy.util.error import NotRegisteredMainError, NotRegisteredExtraError
 from covsirphy.util.error import NotInteractiveError
+from covsirphy.util.evaluator import Evaluator
 from covsirphy.util.term import Term
 from covsirphy.visualization.line_plot import line_plot
 from covsirphy.visualization.bar_plot import bar_plot
 from covsirphy.cleaning.jhu_data import JHUData
+from covsirphy.regression.reg_handler import RegressionHandler
 from covsirphy.analysis.param_tracker import ParamTracker
 from covsirphy.analysis.data_handler import DataHandler
 
@@ -70,8 +72,8 @@ class Scenario(Term):
             pass
         # Interactive (True) / script (False) mode
         self._interactive = hasattr(sys, "ps1")
-        # Prediction of parameter values in the future phases: {name: (regression model, X_target)}
-        self._lm_dict = {}
+        # Prediction of parameter values in the future phases: {name: RegressorBase)}
+        self._reghandler_dict = {}
 
     def __getitem__(self, key):
         """
@@ -609,15 +611,17 @@ class Scenario(Term):
             If 'Main' was used as @name, main PhaseSeries will be used.
             If @columns is None, all columns will be shown.
         """
-        df = self._summary(name=name)
+        df = self._summary(name=name).dropna(how="all", axis=1).fillna(self.UNKNOWN)
         all_cols = df.columns.tolist()
-        if set(self.EST_COLS).issubset(all_cols):
-            all_cols = [col for col in all_cols if col not in self.EST_COLS]
-            all_cols += self.EST_COLS
-        columns = columns or all_cols
-        self._ensure_list(columns, candidates=all_cols, name="columns")
-        df = df.loc[:, columns]
-        return df.dropna(how="all", axis=1).fillna(self.UNKNOWN)
+        # Columns were specified
+        if columns is not None:
+            self._ensure_list(columns, all_cols, name="columns")
+            return df.loc[:, columns]
+        # Metrics, Trials, Runtime will be moved to right
+        right_set = set([*Evaluator.metrics(), self.TRIALS, self.RUNTIME])
+        left_cols = [col for col in all_cols if col not in right_set]
+        right_cols = [col for col in all_cols if col in right_set]
+        return df.loc[:, left_cols + right_cols]
 
     def trend(self, min_size=None, force=True, name="Main", show_figure=True, filename=None, **kwargs):
         """
@@ -1010,7 +1014,10 @@ class Scenario(Term):
         df = df.reset_index(drop=True).explode(self.DATE)
         # Columns
         df = df.drop(
-            [self.TENSE, self.START, self.END, self.ODE, self.TAU, *self.EST_COLS],
+            [
+                self.TENSE, self.START, self.END, self.ODE, self.TAU,
+                *Evaluator.metrics(), self.TRIALS, self.RUNTIME
+            ],
             axis=1, errors="ignore")
         df = df.set_index(self.DATE)
         for col in df.columns:
@@ -1205,32 +1212,34 @@ class Scenario(Term):
         self.add(name=target, **param_dict)
         self.estimate(model, name=target, **est_kwargs)
 
-    def score(self, metrics="RMSLE", variables=None, phases=None, past_days=None, name="Main", y0_dict=None):
+    def score(self, variables=None, phases=None, past_days=None, name="Main", y0_dict=None, **kwargs):
         """
         Evaluate accuracy of phase setting and parameter estimation of all enabled phases all some past days.
 
         Args:
-            metrics (str): "MAE", "MSE", "MSLE", "RMSE" or "RMSLE"
             variables (list[str] or None): variables to use in calculation
             phases (list[str] or None): phases to use in calculation
             past_days (int or None): how many past days to use in calculation, natural integer
             name(str): phase series name. If 'Main', main PhaseSeries will be used
             y0_dict(dict[str, float] or None): dictionary of initial values of variables
+            kwargs: keyword arguments of covsirphy.Evaluator.score()
 
         Returns:
-            float: score with the specified metrics
+            float: score with the specified metrics (covsirphy.Evaluator.score())
 
         Note:
             If @variables is None, ["Infected", "Fatal", "Recovered"] will be used.
             "Confirmed", "Infected", "Fatal" and "Recovered" can be used in @variables.
             If @phases is None, all phases will be used.
             @phases and @past_days can not be specified at the same time.
+
+        Note:
+            Please refer to covsirphy.Evaluator.score() for metrics.
         """
         tracker = self._tracker(name)
         if past_days is not None:
             if phases is not None:
-                raise ValueError(
-                    "@phases and @past_days cannot be specified at the same time.")
+                raise ValueError("@phases and @past_days cannot be specified at the same time.")
             past_days = self._ensure_natural_int(past_days, name="past_days")
             # Separate a phase, if possible
             beginning_date = self.date_change(self._data.last_date, days=0 - past_days)
@@ -1244,20 +1253,21 @@ class Scenario(Term):
                 in enumerate(tracker.series)
                 if unit >= beginning_date
             ]
-        return tracker.score(
-            metrics=metrics, variables=variables, phases=phases, y0_dict=y0_dict)
+        return tracker.score(variables=variables, phases=phases, y0_dict=y0_dict, **kwargs)
 
     def estimate_delay(self, oxcgrt_data=None, indicator="Stringency_index",
-                       target="Confirmed", value_range=(7, None)):
+                       target="Confirmed", percentile=25, limits=(7, 30), **kwargs):
         """
-        Estimate the mode value of delay period [days] between the indicator and the target.
-        We assume that the indicator impact on the target value with delay.
+        Estimate delay period [days], assuming the indicator impact on the target value with delay.
+        The average of representative value (percentile) and @min_size will be returned.
 
         Args:
             oxcgrt_data (covsirphy.OxCGRTData): OxCGRT dataset
             indicator (str): indicator name, a column of any registered datasets
             target (str): target name, a column of any registered datasets
-            value_range (tuple(int, int or None)): tuple, giving the minimum and maximum range to search for change over time
+            percentile (int): percentile to calculate the representative value, in (0, 100)
+            limits (tuple(int, int)): minimum/maximum size of the delay period [days]
+            kwargs: keyword arguments of DataHandler.estimate_delay()
 
         Raises:
             NotRegisteredMainError: either JHUData or PopulationData was not registered
@@ -1277,65 +1287,37 @@ class Scenario(Term):
 
         Note:
             - Average recovered period of JHU dataset will be used as returned value when the estimated value was not in value_range.
-            - Very long periods (outside of 99% quantile) are taken out.
             - @oxcgrt_data argument was deprecated. Please use Scenario.register(extras=[oxcgrt_data]).
         """
+        min_size, max_days = limits
         # Register OxCGRT data
         if oxcgrt_data is not None:
             warnings.warn(
                 "Please use Scenario.register(extras=[oxcgrt_data]) rather than Scenario.fit(oxcgrt_data).",
                 DeprecationWarning, stacklevel=1)
             self.register(extras=[oxcgrt_data])
+        # Un-used arguments
+        if "value_range" in kwargs:
+            warnings.warn("@value_range argument was deprecated.", DeprecationWarning, stacklevel=1)
         # Calculate delay values
-        df = self._data.estimate_delay(indicator=indicator, target=target, delay_name="Period Length")
-        # Filter out very long periods
-        df_filtered = df.loc[df["Period Length"] < df["Period Length"].quantile(0.99)]
-        if value_range[1] is not None:
-            df_filtered = df_filtered.loc[df["Period Length"] < value_range[1]]
-        # Calculate representative value (mode)
-        if df_filtered.empty:
+        df = self._data.estimate_delay(
+            indicator=indicator, target=target, min_size=min_size, delay_name="Period Length",
+            **find_args(DataHandler.estimate_delay, **kwargs))
+        # Remove NAs and sort
+        df.dropna(subset=["Period Length"], inplace=True)
+        df.sort_values("Period Length", inplace=True)
+        df.reset_index(inplace=True, drop=True)
+        # Apply upper limit for delay period if max_days is set
+        if max_days is not None:
+            df = df[df["Period Length"] <= max_days]
+        # Calculate representative value
+        if df.empty:
             return (self._data.recovery_period(), df)
-        delay_period = df_filtered["Period Length"].mode()[0]
+        # Calculate percentile
+        Q1 = np.percentile(df["Period Length"], percentile, interpolation="midpoint")
+        low_lim = min_size
+        delay_period = int((low_lim + Q1) / 2)
         return (int(delay_period), df)
-
-    def _fit_create_data(self, model, name, delay, removed_cols):
-        """
-        Create train/test dataset for Elastic Net regression,
-        assuming that extra variables will impact on ODE parameter values with delay.
-
-        Args:
-            model (covsirphy.ModelBase): ODE model
-            name (str): scenario name
-            delay (int): delay period
-            removed_cols (list[str]): list of variables to remove from X dataset
-
-        Returns:
-            tuple(pandas.DataFrame):
-                - X dataset for linear regression
-                - y dataset for linear regression
-                - X dataset of the target dates
-        """
-        # Clear the future phases
-        self.clear(name=name, include_past=False)
-        # Parameter values
-        param_df = self._track_param(name=name)[model.PARAMETERS]
-        # Extra datasets (explanatory variables)
-        extras_df = self._data.records(main=False, extras=True).set_index(self.DATE)
-        extras_df = extras_df.loc[:, ~extras_df.columns.isin(removed_cols)]
-        # Apply delay on OxCGRT data
-        extras_df.index += timedelta(days=delay)
-        # Create training/test dataset
-        df = param_df.join(extras_df, how="inner")
-        df = df.rolling(window=delay).mean().dropna().drop_duplicates()
-        X = df.drop(model.PARAMETERS, axis=1)
-        y = df.loc[:, model.PARAMETERS]
-        # X dataset of the target dates
-        dates = pd.date_range(
-            start=param_df.index.max() + timedelta(days=1),
-            end=extras_df.index.max(),
-            freq="D")
-        X_target = extras_df.loc[dates]
-        return (X, y, X_target)
 
     def fit(self, oxcgrt_data=None, name="Main", test_size=0.2, seed=0, delay=None, removed_cols=None):
         """
