@@ -34,7 +34,7 @@ class SIRDV(ModelBase):
     }
     VARIABLES = list(VAR_DICT.values())
     # Weights of variables in parameter estimation error function
-    WEIGHTS = np.array([0, 10, 10, 2, 1])
+    WEIGHTS = np.array([0, 10, 10, 2, 5])
     # Variables that increases monotonically
     VARS_INCLEASE = [ModelBase.R, ModelBase.F]
     # Example set of parameters and initial values
@@ -87,7 +87,7 @@ class SIRDV(ModelBase):
         return np.array([dsdt, didt, drdt, dfdt, dvdt])
 
     @classmethod
-    def param_range(cls, taufree_df, population):
+    def param_range(cls, taufree_df, population, quantiles=(0.1, 0.9)):
         """
         Define the range of parameters (not including tau value).
 
@@ -111,19 +111,31 @@ class SIRDV(ModelBase):
         df = df.loc[(df[cls.S] > 0) & (df[cls.CI] > 0)]
         n, t = population, df[cls.TS]
         s, i, r, d = df[cls.S], df[cls.CI], df[cls.R], df[cls.F]
+        # kappa = (dD/dt) / I
+        kappa_series = d.diff() / t.diff() / i
         # sigma = (dR/dt) / I
         sigma_series = r.diff() / t.diff() / i
-        # omega = 0 - (dS/dt + dI/dt + dR/dt + dF/dt) / n
-        omega_series = (n - s + i + r + d).diff() / t.diff() / n
+        # omega = 0 - (dS/dt + dI/dt + dR/dt + dF/dt)
+        vacrate_series = (n - s + i + r + d).diff() / t.diff()
         # Calculate range
-        _dict = {param: (0, 1) for param in cls.PARAMETERS}
-        if not sigma_series.empty:
-            _dict["sigma"] = tuple(sigma_series.quantile(
-                cls.QUANTILE_RANGE).clip(0, 1))
-        if not omega_series.empty:
-            _dict["omega"] = tuple(omega_series.quantile(
-                cls.QUANTILE_RANGE).clip(0, 1))
+        _dict = {
+            k: tuple(v.quantile(quantiles).clip(0, 1))
+            for (k, v) in zip(
+                ["kappa", "sigma", "omega"],
+                [kappa_series, sigma_series, vacrate_series]
+            )
+        }
+        _dict["rho"] = (0, 1)
         return _dict
+
+        # _dict = {param: (0, 1) for param in cls.PARAMETERS}
+        # if not sigma_series.empty:
+        #     _dict["sigma"] = tuple(sigma_series.quantile(
+        #         cls.QUANTILE_RANGE).clip(0, 1))
+        # if not vacrate_series.empty:
+        #     _dict["vacrate"] = tuple(vacrate_series.quantile(
+        #         cls.QUANTILE_RANGE).clip(0, 1))
+        # return _dict
 
     @classmethod
     def specialize(cls, data_df, population):
@@ -154,8 +166,8 @@ class SIRDV(ModelBase):
         df = cls._ensure_dataframe(
             data_df, name="data_df", columns=cls.VALUE_COLUMNS)
         # Calculate dimensional variables
-        df[cls.S] = 0
-        df[cls.V] = 0
+        df[cls.S] = population - df[cls.C]
+        df[cls.V] = df[cls.R] - df[cls.CI]
         return df
 
     @classmethod
