@@ -51,7 +51,7 @@ class SIRDV(ModelBase):
         },
     }
 
-    def __init__(self, population, theta, kappa, rho, sigma,
+    def __init__(self, population, kappa, rho, sigma,
                  vacrate):
         # Total population
         self.population = self._ensure_natural_int(
@@ -230,7 +230,6 @@ class SIRDV(ModelBase):
         """
         try:
             return {
-                "alpha1 [-]": round(self.theta, 3),
                 "1/alpha2 [day]": int(tau / 24 / 60 / self.kappa),
                 "1/beta [day]": int(tau / 24 / 60 / self.rho),
                 "1/gamma [day]": int(tau / 24 / 60 / self.sigma),
