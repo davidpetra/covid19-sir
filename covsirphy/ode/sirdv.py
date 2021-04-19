@@ -34,7 +34,7 @@ class SIRDV(ModelBase):
     }
     VARIABLES = list(VAR_DICT.values())
     # Weights of variables in parameter estimation error function
-    WEIGHTS = np.array([0, 10, 10, 2, 5])
+    WEIGHTS = np.array([0, 10, 10, 2, 30])
     # Variables that increases monotonically
     VARS_INCLEASE = [ModelBase.R, ModelBase.F]
     # Example set of parameters and initial values
