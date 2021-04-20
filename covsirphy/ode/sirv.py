@@ -5,65 +5,55 @@ import numpy as np
 from covsirphy.ode.mbase import ModelBase
 
 
-class SIRDV(ModelBase):
+class SIRV(ModelBase):
     """
-    SIR-DV model.
+    SIRV model.
 
     Args:
         population (int): total population
-            kappa (float)
-            rho (float)
-            sigma (float)
-            vacrate (float)
+        rho (float)
+        sigma (float)
+        vacrate (float)
     """
     # Model name
-    NAME = "SIR-DV"
+    NAME = "SIR-V"
     # names of parameters
-    PARAMETERS = ["kappa", "rho", "sigma", "vacrate"]
-    DAY_PARAMETERS = [
-        "1/alpha2 [day]", "1/beta [day]", "1/gamma [day]",
-        "Vaccination rate [target population/completion time]"
-    ]
+    PARAMETERS = ["rho", "sigma", "vacrate"]
+    DAY_PARAMETERS = ["1/beta [day]", "1/gamma [day]", "Vaccination rate [target population/completion time]"]
     # Variable names in (non-dim, dimensional) ODEs
     VAR_DICT = {
         "x": ModelBase.S,
         "y": ModelBase.CI,
-        "z": ModelBase.R,
-        "w": ModelBase.F,
+        "z": ModelBase.FR
         "v": ModelBase.V
     }
     VARIABLES = list(VAR_DICT.values())
     # Weights of variables in parameter estimation error function
-    WEIGHTS = np.array([0, 10, 10, 2, 5])
+    WEIGHTS = np.array([1, 1, 1, 1])
     # Variables that increases monotonically
-    VARS_INCLEASE = [ModelBase.R, ModelBase.F]
+    VARS_INCLEASE = [ModelBase.FR]
     # Example set of parameters and initial values
     EXAMPLE = {
         ModelBase.STEP_N: 180,
         ModelBase.N.lower(): 1_000_000,
         ModelBase.PARAM_DICT: {
-            "kappa": 0.005, "rho": 0.2, "sigma": 0.075,
-            "vacrate": 0.186,
+            "rho": 0.2, "sigma": 0.075, "vacrate": 0.186,
         },
         ModelBase.Y0_DICT: {
-            ModelBase.S: 999_000, ModelBase.CI: 1000, ModelBase.R: 0, ModelBase.F: 0,
-            ModelBase.V: 0,
+            ModelBase.S: 999_000, ModelBase.CI: 1000, ModelBase.FR: 0, ModelBase.V: 0,
         },
     }
 
-    def __init__(self, population, kappa, rho, sigma,
-                 vacrate=None):
+    def __init__(self, population, rho, sigma, vacrate=None):
         # Total population
         self.population = self._ensure_natural_int(
             population, name="population"
         )
         # Non-dim parameters
-        self.kappa = kappa
         self.rho = rho
         self.sigma = sigma
         self.vacrate = vacrate
-        self.non_param_dict = {
-            "kappa": kappa, "rho": rho, "sigma": sigma, "vacrate": vacrate}
+        self.non_param_dict = {"rho": rho, "sigma": sigma, "vacrate": vacrate}
 
     def __call__(self, t, X):
         """
@@ -78,18 +68,17 @@ class SIRDV(ModelBase):
         """
         n = self.population
         s, i, *_ = X
-        beta_si = self.rho * s * i / n
-        dsdt = max(0 - beta_si - self.vacrate, - s)
-        dvdt = 0 - dsdt - beta_si
+        dsdt = 0 - self.rho * s * i / n - self.vacrate
+        dvdt = self.vacrate
         drdt = self.sigma * i + self.vacrate
-        dfdt = self.kappa * i
-        didt = 0 - dsdt - drdt - dfdt - dvdt
-        return np.array([dsdt, didt, drdt, dfdt, dvdt])
+        didt = 0 - dsdt - drdt - dvdt
+        return np.array([dsdt, didt, drdt, dvdt])
 
     @classmethod
     def param_range(cls, taufree_df, population, quantiles=(0.1, 0.9)):
         """
-        Define the range of parameters (not including tau value).
+        Define the value range of ODE parameters using (X, dX/dt) points.
+        In SIR model, X is S, I and R here.
 
         Args:
             taufree_df (pandas.DataFrame):
@@ -99,43 +88,26 @@ class SIRDV(ModelBase):
                     - t (int): time steps (tau-free)
                     - columns with dimensional variables
             population (int): total population
+            quantiles (tuple(int, int)): quantiles to cut, like confidence interval
 
         Returns:
-            (dict)
-                - key (str): parameter name
-                - value (tuple(float, float)): min value and max value
+            dict(str, tuple(float, float)): minimum/maximum values
         """
-        df = cls._ensure_dataframe(
-            taufree_df, name="taufree_df", columns=[cls.TS, *cls.VARIABLES]
-        )
+        df = cls._ensure_dataframe(taufree_df, name="taufree_df", columns=[cls.TS, *cls.VARIABLES])
         df = df.loc[(df[cls.S] > 0) & (df[cls.CI] > 0)]
-        n, t = population, df[cls.TS]
-        s, i, r, d = df[cls.S], df[cls.CI], df[cls.R], df[cls.F]
-        # kappa = (dD/dt) / I
-        kappa_series = d.diff() / t.diff() / i
+        n, t, s, i, r = population, df[cls.TS], df[cls.S], df[cls.CI], df[cls.FR]
+        # rho = - n * (dS/dt) / S / I
+        rho_series = 0 - n * s.diff() / t.diff() / s / i
         # sigma = (dR/dt) / I
         sigma_series = r.diff() / t.diff() / i
-        # omega = 0 - (dS/dt + dI/dt + dR/dt + dF/dt)
-        vacrate_series = (n - s + i + r + d).diff() / t.diff()
-        # Calculate range
+        # Vacrate
+        vacrate_series = (n - s + i + r).diff() / t.diff()
+        # Calculate quantile
         _dict = {
             k: tuple(v.quantile(quantiles).clip(0, 1))
-            for (k, v) in zip(
-                ["kappa", "sigma", "omega"],
-                [kappa_series, sigma_series, vacrate_series]
-            )
+            for (k, v) in zip(["rho", "sigma", "vacrate"], [rho_series, sigma_series, vacrate_series])
         }
-        _dict["rho"] = (0, 1)
         return _dict
-
-        # _dict = {param: (0, 1) for param in cls.PARAMETERS}
-        # if not sigma_series.empty:
-        #     _dict["sigma"] = tuple(sigma_series.quantile(
-        #         cls.QUANTILE_RANGE).clip(0, 1))
-        # if not vacrate_series.empty:
-        #     _dict["vacrate"] = tuple(vacrate_series.quantile(
-        #         cls.QUANTILE_RANGE).clip(0, 1))
-        # return _dict
 
     @classmethod
     def specialize(cls, data_df, population):
@@ -155,19 +127,19 @@ class SIRDV(ModelBase):
             population (int): total population in the place
 
         Returns:
-            (pandas.DataFrame)
-                Index
-                    reset index
-                Columns
-                    - any columns @data_df has
-                    - Susceptible (int): 0
-                    - Vactinated (int): 0
+            (pandas.DataFrame):
+                    Index
+                        reset index
+                    Columns
+                        - any columns @data_df has
+                        - Susceptible (int): the number of susceptible cases
+                        - Fatal or Recovered (int): total number of fatal/recovered cases
         """
         df = cls._ensure_dataframe(
             data_df, name="data_df", columns=cls.VALUE_COLUMNS)
         # Calculate dimensional variables
         df[cls.S] = population - df[cls.C]
-        df[cls.V] = df[cls.R] - df[cls.CI]
+        df[cls.FR] = df[cls.F] + df[cls.R]
         return df
 
     @classmethod
@@ -177,22 +149,20 @@ class SIRDV(ModelBase):
          using a dataframe with the variables of the model.
 
         Args:
-        specialized_df (pandas.DataFrame): dataframe with the variables
+            specialized_df (pandas.DataFrame): dataframe with the variables
 
-            Index
-                (object)
-            Columns
-                - Susceptible (int): the number of susceptible cases
-                - Infected (int): the number of currently infected cases
-                - Recovered (int): the number of recovered cases
-                - Fatal (int): the number of fatal cases
-                - Vaccinated (int): the number of vactinated persons
-                - any columns
+                Index
+                    reset index
+                Columns
+                    - Susceptible (int): the number of susceptible cases
+                    - Infected (int): the number of currently infected cases
+                    - Fatal or Recovered (int): the number of fatal/recovered cases
+                    - any columns
 
         Returns:
-            (pandas.DataFrame)
+            (pandas.DataFrame):
                 Index
-                    (object): as-is
+                    reset index
                 Columns
                     - Confirmed (int): the number of confirmed cases
                     - Infected (int): the number of currently infected cases
@@ -202,7 +172,9 @@ class SIRDV(ModelBase):
         """
         df = specialized_df.copy()
         other_cols = list(set(df.columns) - set(cls.VALUE_COLUMNS))
-        df[cls.C] = df[cls.CI] + df[cls.R] + df[cls.F]
+        df[cls.C] = df[cls.CI] + df[cls.FR]
+        df[cls.F] = 0
+        df[cls.R] = df[cls.FR]
         return df.loc[:, [*cls.VALUE_COLUMNS, *other_cols]]
 
     def calc_r0(self):
@@ -213,7 +185,7 @@ class SIRDV(ModelBase):
             float
         """
         try:
-            rt = self.rho / (self.sigma + self.kappa)
+            rt = self.rho / self.sigma
         except ZeroDivisionError:
             return None
         return round(rt, 2)
@@ -230,10 +202,9 @@ class SIRDV(ModelBase):
         """
         try:
             return {
-                "1/alpha2 [day]": int(tau / 24 / 60 / self.kappa),
                 "1/beta [day]": int(tau / 24 / 60 / self.rho),
                 "1/gamma [day]": int(tau / 24 / 60 / self.sigma),
-                "Vaccintion rate [target population/completion time]": float(self.vacrate)
+                "Vaccination rate [target population/completion time]": float(self.vacrate)
             }
         except ZeroDivisionError:
             return {p: None for p in self.DAY_PARAMETERS}
