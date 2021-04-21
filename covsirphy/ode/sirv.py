@@ -24,7 +24,7 @@ class SIRV(ModelBase):
     VAR_DICT = {
         "x": ModelBase.S,
         "y": ModelBase.CI,
-        "z": ModelBase.FR
+        "z": ModelBase.FR,
         "v": ModelBase.V
     }
     VARIABLES = list(VAR_DICT.values())
