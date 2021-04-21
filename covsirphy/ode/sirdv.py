@@ -79,7 +79,7 @@ class SIRDV(ModelBase):
         n = self.population
         s, i, *_ = X
         beta_si = self.rho * s * i / n
-        dsdt = max(0 - beta_si - self.vacrate, - s)
+        dsdt = 0 - beta_si - self.vacrate
         dvdt = 0 - dsdt - beta_si
         drdt = self.sigma * i + self.vacrate
         dfdt = self.kappa * i
