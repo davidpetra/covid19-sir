@@ -47,6 +47,7 @@ from covsirphy.trend.trend_plot import TrendPlot, trend_plot, line_plot_multiple
 # ode
 from covsirphy.ode.mbase import ModelBase
 from covsirphy.ode.sir import SIR
+from covsirphy.ode.sird import SIRV
 from covsirphy.ode.sird import SIRD
 from covsirphy.ode.sirdv import SIRDV
 from covsirphy.ode.sirf import SIRF
